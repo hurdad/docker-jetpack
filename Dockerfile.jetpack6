@@ -210,6 +210,31 @@ RUN git clone https://github.com/google/flatbuffers.git && \
     rm -rf /opt/build/flatbuffers
 
 # =========================
+# Stage: Test
+# =========================
+FROM builder AS test
+
+ENV LD_PRELOAD=/usr/local/lib/libjemalloc.so
+ENV MALLOC_CONF=background_thread:true,metadata_thp:auto,dirty_decay_ms:5000,muzzy_decay_ms:5000,narenas:4
+ENV LD_LIBRARY_PATH=/usr/local/lib:$CUDA_HOME/lib64
+
+COPY tests/ /tests/
+
+# Build C++ tests
+RUN cd /tests && \
+    mkdir build && cd build && \
+    cmake .. -GNinja \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_PREFIX_PATH=/usr/local && \
+    ninja
+
+# Run C++ tests
+RUN /tests/build/test_libs
+
+# Run Python tests
+RUN python3 /tests/test_pyarrow.py
+
+# =========================
 # Stage: Dev Image
 # =========================
 FROM builder AS dev
