@@ -22,6 +22,12 @@
 // jemalloc
 #include <jemalloc/jemalloc.h>
 
+// nats.c
+#include <nats/nats.h>
+
+// nats-cpp
+#include <nats-cpp/nats.hpp>
+
 #define PASS(name) std::cout << "  PASS  " << name << "\n"
 #define FAIL(name, msg) std::cout << "  FAIL  " << name << ": " << msg << "\n"; failed++
 
@@ -74,7 +80,23 @@ int main() {
         PASS("jemalloc_alloc");
     } catch (const std::exception& e) { FAIL("jemalloc_alloc", e.what()); }
 
-    int total = 6;
+    // nats.c: library version
+    try {
+        int major = 0, minor = 0, patch = 0;
+        natsLib_Version(&major, &minor, &patch);
+        std::string ver = std::to_string(major) + "." + std::to_string(minor) + "." + std::to_string(patch);
+        std::cout << "    nats.c version: " << ver << "\n";
+        assert(major >= 3);
+        PASS("natsc_version");
+    } catch (const std::exception& e) { FAIL("natsc_version", e.what()); }
+
+    // nats-cpp: default options instantiation
+    try {
+        nats::ConnectionOptions opts;
+        PASS("natscpp_options");
+    } catch (const std::exception& e) { FAIL("natscpp_options", e.what()); }
+
+    int total = 8;
     std::cout << "\n" << (total - failed) << "/" << total << " tests passed\n";
     return failed;
 }
