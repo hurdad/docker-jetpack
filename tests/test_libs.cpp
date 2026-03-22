@@ -44,11 +44,15 @@ int main() {
         PASS("arrow_array");
     } catch (const std::exception& e) { FAIL("arrow_array", e.what()); }
 
-    // Arrow CUDA: initialise CUDA memory manager
+    // Arrow CUDA: initialise CUDA memory manager (skipped if no GPU)
     try {
         auto mgr = arrow::cuda::CudaDeviceManager::Instance();
-        assert(mgr.ok());
-        PASS("arrow_cuda_manager");
+        if (mgr.ok() && mgr.ValueOrDie()->num_devices() > 0) {
+            PASS("arrow_cuda_manager");
+        } else {
+            std::cout << "  SKIP  arrow_cuda_manager (no GPU)\n";
+            total--;
+        }
     } catch (const std::exception& e) { FAIL("arrow_cuda_manager", e.what()); }
 
     // gRPC: create a channel
@@ -82,11 +86,9 @@ int main() {
 
     // nats.c: library version
     try {
-        int major = 0, minor = 0, patch = 0;
-        natsLib_Version(&major, &minor, &patch);
-        std::string ver = std::to_string(major) + "." + std::to_string(minor) + "." + std::to_string(patch);
+        const char* ver = nats_GetVersion();
         std::cout << "    nats.c version: " << ver << "\n";
-        assert(major >= 3);
+        assert(nats_GetVersionNumber() >= 0x030C00); // >= 3.12.0
         PASS("natsc_version");
     } catch (const std::exception& e) { FAIL("natsc_version", e.what()); }
 

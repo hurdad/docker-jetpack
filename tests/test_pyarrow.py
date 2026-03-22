@@ -31,15 +31,23 @@ def test_parquet_roundtrip():
         assert result.equals(table)
 
 def test_cuda_context():
-    ctx = cuda.Context(0)
-    print(f"CUDA device 0 — free: {ctx.memory.free}, total: {ctx.memory.total}")
-    assert ctx.memory.total > 0
+    try:
+        ctx = cuda.Context(0)
+        print(f"  CUDA device 0 — free: {ctx.memory.free}, total: {ctx.memory.total}")
+        assert ctx.memory.total > 0
+    except cuda.CudaError:
+        print("  SKIP  test_cuda_context (no GPU)")
+        return
 
 def test_cuda_buffer():
-    ctx = cuda.Context(0)
-    host = pa.array(np.arange(1024, dtype=np.int32))
-    buf = cuda.CudaBuffer.from_buffer(host.buffers()[1])
-    assert buf.size == host.buffers()[1].size
+    try:
+        ctx = cuda.Context(0)
+        host = pa.array(np.arange(1024, dtype=np.int32))
+        buf = cuda.CudaBuffer.from_buffer(host.buffers()[1])
+        assert buf.size == host.buffers()[1].size
+    except cuda.CudaError:
+        print("  SKIP  test_cuda_buffer (no GPU)")
+        return
 
 if __name__ == "__main__":
     tests = [test_version, test_basic_array, test_record_batch,
