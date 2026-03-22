@@ -2,11 +2,9 @@
 
 Docker images for NVIDIA JetPack 6 / L4T R36 / CUDA 12.2 (aarch64).
 
-Includes: CUDA, cuBLAS, cuDNN, TensorRT, jemalloc, Abseil, Protobuf, gRPC, Apache Arrow (CUDA-enabled), OpenTelemetry C++, FlatBuffers.
+Includes: CUDA, cuBLAS, cuDNN, TensorRT, jemalloc, Abseil, Protobuf, gRPC, Apache Arrow (CUDA-enabled + PyArrow), OpenTelemetry C++, FlatBuffers.
 
 Pre-built images are published to [GitHub Container Registry](https://github.com/hurdad/docker-jetpack/pkgs/container/docker-jetpack).
-
----
 
 ## Images
 
@@ -14,8 +12,6 @@ Pre-built images are published to [GitHub Container Registry](https://github.com
 |---|---|
 | `ghcr.io/hurdad/docker-jetpack:latest` | Runtime — minimal libs only |
 | `ghcr.io/hurdad/docker-jetpack:latest-dev` | Dev — includes build tools and headers |
-
----
 
 ## Pull
 
@@ -27,52 +23,29 @@ docker pull ghcr.io/hurdad/docker-jetpack:latest
 docker pull ghcr.io/hurdad/docker-jetpack:latest-dev
 ```
 
----
-
 ## Build locally
 
 Both images are defined as stages in `Dockerfile.jetpack6`. Build must run on an aarch64 host (Jetson).
 
-### Runtime image
-
 ```bash
-docker build \
-  -f Dockerfile.jetpack6 \
-  --target runtime \
-  -t docker-jetpack:runtime \
-  .
-```
+# Runtime
+docker build -f Dockerfile.jetpack6 --target runtime -t docker-jetpack:runtime .
 
-### Dev image
+# Dev
+docker build -f Dockerfile.jetpack6 --target dev -t docker-jetpack:dev .
 
-```bash
-docker build \
-  -f Dockerfile.jetpack6 \
-  --target dev \
-  -t docker-jetpack:dev \
-  .
-```
-
-### Both at once
-
-```bash
+# Both
 docker build -f Dockerfile.jetpack6 --target runtime -t docker-jetpack:runtime . && \
 docker build -f Dockerfile.jetpack6 --target dev     -t docker-jetpack:dev     .
 ```
 
----
-
 ## Usage
 
-### Runtime
-
 ```bash
+# Runtime
 docker run --rm --runtime=nvidia ghcr.io/hurdad/docker-jetpack:latest
-```
 
-### Dev
-
-```bash
+# Dev
 docker run --rm --runtime=nvidia \
   -v $(pwd):/workspace \
   ghcr.io/hurdad/docker-jetpack:latest-dev
@@ -80,8 +53,6 @@ docker run --rm --runtime=nvidia \
 
 > `--runtime=nvidia` is required to expose CUDA libraries from the Jetson host.
 
----
-
 ## CI
 
-Images are built automatically via GitHub Actions on a self-hosted Jetson runner and pushed to GHCR on every push to `main` and on version tags.
+Images are built automatically via GitHub Actions on a self-hosted `jetson6` runner and pushed to GHCR on every push to `main` and on version tags.
