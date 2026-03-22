@@ -7,7 +7,7 @@ import tempfile, os
 
 def test_version():
     print(f"pyarrow version: {pa.__version__}")
-    assert pa.__version__.startswith("15.")
+    assert pa.__version__.startswith("23.")
 
 def test_basic_array():
     arr = pa.array([1, 2, 3, 4, 5])
