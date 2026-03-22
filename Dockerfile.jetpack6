@@ -10,7 +10,7 @@ FROM nvcr.io/nvidia/l4t-jetpack:r36.2.0 AS builder
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Add Kitware APT repo for a recent CMake (Ubuntu 22.04 default 3.22 is too old for some deps)
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
     ca-certificates curl gnupg && \
     curl -fsSL https://apt.kitware.com/keys/kitware-archive-latest.asc \
       | gpg --dearmor -o /usr/share/keyrings/kitware-archive-keyring.gpg && \
@@ -38,7 +38,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libboost-dev \
     libboost-filesystem-dev \
     libthrift-dev \
-    libutf8proc-dev && \
+    libutf8proc-dev \
+    python3-pip \
+    python3-dev && \
     rm -rf /var/lib/apt/lists/*
 
 # CUDA_HOME is set by l4t-jetpack; re-export so child layers see it
@@ -165,6 +167,14 @@ RUN git clone https://github.com/apache/arrow.git && \
       -Dxsimd_SOURCE=SYSTEM \
       -DCMAKE_POLICY_VERSION_MINIMUM=3.5 && \
     ninja && ninja install && \
+    cd /opt/build/arrow/python && \
+    pip3 install --no-cache-dir cython numpy && \
+    ARROW_HOME=/usr/local \
+    PYARROW_WITH_CUDA=1 \
+    PYARROW_WITH_PARQUET=1 \
+    PYARROW_WITH_DATASET=1 \
+    PYARROW_WITH_FILESYSTEM=1 \
+    pip3 install --no-cache-dir --no-build-isolation . && \
     rm -rf /opt/build/arrow
 
 # -------------------------
@@ -223,7 +233,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # libcudart is NOT available as an apt package in l4t-base; on Jetson it is
 # provided at runtime by the NVIDIA container runtime (--runtime=nvidia).
 # All other shared libs that the built .so files depend on are installed here.
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
     libstdc++6 \
     ca-certificates \
     libssl3 \
@@ -233,12 +243,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     liblz4-1 \
     libbrotli1 \
     libboost-filesystem1.74.0 \
-    libutf8proc2 && \
+    libutf8proc2 \
+    python3 \
+    python3-numpy && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy only runtime artifacts
 COPY --from=builder /usr/local/lib /usr/local/lib
 COPY --from=builder /usr/local/bin /usr/local/bin
+COPY --from=builder /usr/lib/python3 /usr/lib/python3
+COPY --from=builder /usr/local/lib/python3.10 /usr/local/lib/python3.10
 
 RUN ldconfig
 
