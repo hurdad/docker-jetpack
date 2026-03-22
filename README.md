@@ -1,4 +1,4 @@
-# docker-jetpack6
+# docker-jetpack
 
 Docker images for NVIDIA JetPack 6 / L4T R36 / CUDA 12.2 (aarch64).
 
