@@ -1,0 +1,9 @@
+# GitHub Actions self-hosted runner
+_work/
+_diag/
+_runner/
+.runner
+.credentials
+.credentials_rsaparams
+.env
+*.pid
