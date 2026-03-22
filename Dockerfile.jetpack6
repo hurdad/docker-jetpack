@@ -453,7 +453,6 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-reco
 # Copy only runtime artifacts
 COPY --from=builder /usr/local/lib /usr/local/lib
 COPY --from=builder /usr/local/bin /usr/local/bin
-COPY --from=builder /usr/lib/python3 /usr/lib/python3
 COPY --from=builder /usr/local/lib/python3.10 /usr/local/lib/python3.10
 
 RUN ldconfig

@@ -1,13 +1,9 @@
 #include <iostream>
 #include <cassert>
-#include <string>
 
 // Arrow
 #include <arrow/api.h>
 #include <arrow/gpu/cuda_api.h>
-#include <arrow/io/api.h>
-#include <parquet/arrow/writer.h>
-#include <parquet/arrow/reader.h>
 
 // gRPC / Protobuf
 #include <grpcpp/grpcpp.h>
@@ -33,6 +29,7 @@
 
 int main() {
     int failed = 0;
+    int total = 8;
 
     // Arrow: build a simple int32 array
     try {
@@ -98,7 +95,6 @@ int main() {
         PASS("natscpp_options");
     } catch (const std::exception& e) { FAIL("natscpp_options", e.what()); }
 
-    int total = 8;
     std::cout << "\n" << (total - failed) << "/" << total << " tests passed\n";
     return failed;
 }

@@ -1,6 +1,5 @@
 import pyarrow as pa
 import pyarrow.parquet as pq
-import pyarrow.dataset as ds
 import pyarrow.cuda as cuda
 import numpy as np
 import tempfile, os
