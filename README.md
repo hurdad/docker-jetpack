@@ -2,7 +2,7 @@
 
 Docker images for NVIDIA JetPack 6 / L4T R36 / CUDA 12.2 (aarch64).
 
-Includes: CUDA, cuBLAS, cuDNN, TensorRT, jemalloc, Abseil, Protobuf, gRPC, Apache Arrow (CUDA-enabled + PyArrow), OpenTelemetry C++, FlatBuffers, nats.c, nats-cpp.
+Includes: CUDA, cuBLAS, cuDNN, TensorRT, jemalloc, Abseil, Protobuf, gRPC, AWS SDK (S3), Apache Arrow (CUDA + S3 + PyArrow), OpenTelemetry C++, FlatBuffers, nats.c, nats-cpp.
 
 Pre-built images are published to [GitHub Container Registry](https://github.com/hurdad/docker-jetpack/pkgs/container/docker-jetpack6).
 

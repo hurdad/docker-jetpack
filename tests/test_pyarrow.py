@@ -1,6 +1,7 @@
 import pyarrow as pa
 import pyarrow.parquet as pq
 import pyarrow.cuda as cuda
+import pyarrow.fs as pafs
 import numpy as np
 import tempfile, os
 
@@ -29,6 +30,12 @@ def test_parquet_roundtrip():
         result = pq.read_table(path)
         assert result.equals(table)
 
+def test_s3_filesystem():
+    # Verify S3 support is compiled in — does not require network or credentials
+    assert hasattr(pafs, "S3FileSystem"), "S3FileSystem not available — Arrow built without S3 support"
+    pafs.initialize_s3(pafs.S3GlobalOptions())
+    pafs.finalize_s3()
+
 def test_cuda_context():
     try:
         ctx = cuda.Context(0)
@@ -50,7 +57,8 @@ def test_cuda_buffer():
 
 if __name__ == "__main__":
     tests = [test_version, test_basic_array, test_record_batch,
-             test_parquet_roundtrip, test_cuda_context, test_cuda_buffer]
+             test_parquet_roundtrip, test_s3_filesystem,
+             test_cuda_context, test_cuda_buffer]
     failed = 0
     for t in tests:
         try:

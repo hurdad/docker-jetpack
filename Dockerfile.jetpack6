@@ -39,6 +39,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libboost-filesystem-dev \
     libthrift-dev \
     libutf8proc-dev \
+    libcurl4-openssl-dev \
     python3-pip \
     python3-dev && \
     rm -rf /var/lib/apt/lists/*
@@ -118,6 +119,25 @@ RUN git clone https://github.com/grpc/grpc.git && \
     rm -rf /opt/build/grpc
 
 # -------------------------
+# AWS SDK for C++ 1.11.350 (Arrow S3 dependency)
+# Build only the S3-required components to keep image size down
+# -------------------------
+RUN git clone https://github.com/aws/aws-sdk-cpp.git && \
+    cd aws-sdk-cpp && \
+    git checkout 1.11.350 && \
+    git submodule update --init --recursive && \
+    mkdir build && cd build && \
+    cmake .. -GNinja \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=/usr/local \
+      -DBUILD_ONLY="s3;identity-management;sts;cognito-identity" \
+      -DBUILD_SHARED_LIBS=ON \
+      -DENABLE_TESTING=OFF \
+      -DCMAKE_PREFIX_PATH=/usr/local && \
+    ninja && ninja install && \
+    rm -rf /opt/build/aws-sdk-cpp
+
+# -------------------------
 # xsimd 12.1.0 (Arrow 15.0.2 dependency, header-only)
 # Kitware cmake >=3.31 errors on cmake_minimum_required(<3.5).  Arrow's
 # ExternalProject_Add for xsimd_ep does not pass CMAKE_POLICY_VERSION_MINIMUM,
@@ -160,6 +180,7 @@ RUN git clone https://github.com/apache/arrow.git && \
       -DARROW_WITH_BROTLI=ON \
       -DARROW_BUILD_TESTS=OFF \
       -DARROW_FLIGHT=OFF \
+      -DARROW_S3=ON \
       -DARROW_SIMD_LEVEL=NEON \
       -DARROW_CUDA=ON \
       -DARROW_CUDA_ARCH=87 \
@@ -174,6 +195,7 @@ RUN git clone https://github.com/apache/arrow.git && \
     PYARROW_WITH_PARQUET=1 \
     PYARROW_WITH_DATASET=1 \
     PYARROW_WITH_FILESYSTEM=1 \
+    PYARROW_WITH_S3=1 \
     pip3 install --no-cache-dir --no-build-isolation . && \
     rm -rf /opt/build/arrow
 
@@ -373,6 +395,7 @@ RUN git clone https://github.com/apache/arrow.git && \
       -DARROW_CUDA=OFF \
       -DARROW_BUILD_TESTS=ON \
       -DARROW_FLIGHT=OFF \
+      -DARROW_S3=ON \
       -Dxsimd_SOURCE=SYSTEM \
       -DCMAKE_POLICY_VERSION_MINIMUM=3.5 && \
     ninja && \
@@ -447,6 +470,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-reco
     libbrotli1 \
     libboost-filesystem1.74.0 \
     libutf8proc2 \
+    libcurl4 \
     python3 && \
     rm -rf /var/lib/apt/lists/*
 
