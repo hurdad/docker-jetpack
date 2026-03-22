@@ -6,23 +6,23 @@ Pre-built images are published to [GitHub Container Registry](https://github.com
 
 ## Libraries
 
-| Library | Version | Description |
-|---|---|---|
-| CUDA | 12.2 | Provided by `l4t-jetpack:r36.2.0` base image |
-| cuBLAS | 12.2 | CUDA Basic Linear Algebra Subroutines |
-| cuDNN | 8.x | Deep Neural Network primitives |
-| TensorRT | 8.x | High-performance deep learning inference |
-| [jemalloc](https://github.com/jemalloc/jemalloc) | 5.3.0 | Memory allocator with profiling and background thread support |
-| [Abseil](https://github.com/abseil/abseil-cpp) | 20240116.2 | Google C++ common libraries |
-| [Protobuf](https://github.com/protocolbuffers/protobuf) | v27.3 | Protocol Buffers serialization |
-| [gRPC](https://github.com/grpc/grpc) | v1.66.2 | High-performance RPC framework |
-| [AWS SDK C++](https://github.com/aws/aws-sdk-cpp) | 1.11.350 | S3, STS, IAM, Cognito — required for Arrow S3 support |
-| [xsimd](https://github.com/xtensor-stack/xsimd) | 12.1.0 | SIMD intrinsics wrapper (Arrow dependency, header-only) |
-| [Apache Arrow](https://github.com/apache/arrow) | 23.0.1 | Columnar in-memory analytics with CUDA and S3 support; includes PyArrow |
-| [OpenTelemetry C++](https://github.com/open-telemetry/opentelemetry-cpp) | v1.26.0 | Observability — traces, metrics, logs with OTLP/gRPC and OTLP/HTTP exporters |
-| [FlatBuffers](https://github.com/google/flatbuffers) | v25.12.19 | Memory-efficient serialization library |
-| [nats.c](https://github.com/nats-io/nats.c) | v3.12.0 | NATS messaging C client with TLS support |
-| [nats-cpp](https://github.com/hurdad/nats-cpp) | main | Header-only C++20 wrapper for nats.c |
+| Library | Version | Released | Description |
+|---|---|---|---|
+| CUDA | 12.2 | — | Provided by `l4t-jetpack:r36.2.0` base image |
+| cuBLAS | 12.2 | — | CUDA Basic Linear Algebra Subroutines |
+| cuDNN | 8.x | — | Deep Neural Network primitives |
+| TensorRT | 8.x | — | High-performance deep learning inference |
+| [jemalloc](https://github.com/jemalloc/jemalloc) | 5.3.0 | May 2019 | Memory allocator with profiling and background thread support |
+| [Abseil](https://github.com/abseil/abseil-cpp) | 20240116.2 | Apr 2024 | Google C++ common libraries |
+| [Protobuf](https://github.com/protocolbuffers/protobuf) | v27.3 | Jul 2024 | Protocol Buffers serialization |
+| [gRPC](https://github.com/grpc/grpc) | v1.66.2 | Sep 2024 | High-performance RPC framework |
+| [AWS SDK C++](https://github.com/aws/aws-sdk-cpp) | 1.11.350 | Jun 2024 | S3, STS, IAM, Cognito — required for Arrow S3 support |
+| [xsimd](https://github.com/xtensor-stack/xsimd) | 12.1.0 | Dec 2024 | SIMD intrinsics wrapper (Arrow dependency, header-only) |
+| [Apache Arrow](https://github.com/apache/arrow) | 23.0.1 | Feb 2025 | Columnar in-memory analytics with CUDA and S3 support; includes PyArrow |
+| [OpenTelemetry C++](https://github.com/open-telemetry/opentelemetry-cpp) | v1.26.0 | Mar 2025 | Observability — traces, metrics, logs with OTLP/gRPC and OTLP/HTTP exporters |
+| [FlatBuffers](https://github.com/google/flatbuffers) | v25.12.19 | Dec 2024 | Memory-efficient serialization library |
+| [nats.c](https://github.com/nats-io/nats.c) | v3.12.0 | Nov 2024 | NATS messaging C client with TLS support |
+| [nats-cpp](https://github.com/hurdad/nats-cpp) | main | — | Header-only C++20 wrapper for nats.c |
 
 ## Images
 
