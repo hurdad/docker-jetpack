@@ -209,6 +209,36 @@ RUN git clone https://github.com/google/flatbuffers.git && \
     ninja && ninja install && \
     rm -rf /opt/build/flatbuffers
 
+# -------------------------
+# nats.c v3.12.0
+# -------------------------
+RUN git clone https://github.com/nats-io/nats.c.git && \
+    cd nats.c && \
+    git checkout v3.12.0 && \
+    mkdir build && cd build && \
+    cmake .. -GNinja \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=/usr/local \
+      -DNATS_BUILD_WITH_TLS=ON \
+      -DNATS_BUILD_STREAMING=OFF && \
+    ninja && ninja install && \
+    rm -rf /opt/build/nats.c
+
+# -------------------------
+# nats-cpp (header-only, main)
+# Uses system nats.c via pkg-config (no submodule init)
+# -------------------------
+RUN git clone https://github.com/hurdad/nats-cpp.git && \
+    cd nats-cpp && \
+    mkdir build && cd build && \
+    cmake .. -GNinja \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=/usr/local \
+      -DBUILD_TESTING=OFF \
+      -DNATSCPP_BUILD_EXAMPLES=OFF && \
+    ninja install && \
+    rm -rf /opt/build/nats-cpp
+
 # =========================
 # Stage: Test (smoke tests)
 # =========================
