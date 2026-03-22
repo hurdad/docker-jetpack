@@ -248,7 +248,7 @@ RUN find /usr/local/lib -name "*.so*" -exec strip --strip-unneeded {} + || true
 # jemalloc tuning
 ENV LD_PRELOAD=/usr/local/lib/libjemalloc.so
 ENV MALLOC_CONF=background_thread:true,metadata_thp:auto,dirty_decay_ms:5000,muzzy_decay_ms:5000,narenas:4
-ENV LD_LIBRARY_PATH=/usr/local/lib:${LD_LIBRARY_PATH:-}
+ENV LD_LIBRARY_PATH=/usr/local/lib
 
 WORKDIR /app
 
