@@ -1,0 +1,255 @@
+# =========================
+# Dockerfile.jetpack6 — JetPack 6 / L4T R36 / CUDA 12.2 / aarch64
+# =========================
+# Stage: Builder (base for dev)
+# =========================
+# l4t-jetpack:r36.2.0 ships CUDA 12.2 (nvcc, headers, cudart, cuBLAS, cuDNN,
+# TensorRT) — no need to apt-install cuda-nvcc / cuda-cudart-dev separately.
+FROM nvcr.io/nvidia/l4t-jetpack:r36.2.0 AS builder
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Add Kitware APT repo for a recent CMake (Ubuntu 22.04 default 3.22 is too old for some deps)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates curl gnupg && \
+    curl -fsSL https://apt.kitware.com/keys/kitware-archive-latest.asc \
+      | gpg --dearmor -o /usr/share/keyrings/kitware-archive-keyring.gpg && \
+    echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ jammy main' \
+      > /etc/apt/sources.list.d/kitware.list && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    cmake \
+    ninja-build \
+    git \
+    pkg-config \
+    autoconf \
+    libtool \
+    curl \
+    unzip \
+    ca-certificates \
+    libssl-dev \
+    zlib1g-dev \
+    libzstd-dev \
+    libsnappy-dev \
+    liblz4-dev \
+    libbrotli-dev \
+    libboost-dev \
+    libboost-filesystem-dev \
+    libthrift-dev \
+    libutf8proc-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+# CUDA_HOME is set by l4t-jetpack; re-export so child layers see it
+ENV CUDA_HOME=/usr/local/cuda
+ENV PATH=$CUDA_HOME/bin:$PATH
+ENV LD_LIBRARY_PATH=$CUDA_HOME/lib64:$LD_LIBRARY_PATH
+
+WORKDIR /opt/build
+
+# -------------------------
+# jemalloc 5.3.0
+# -------------------------
+RUN git clone https://github.com/jemalloc/jemalloc.git && \
+    cd jemalloc && \
+    git checkout 5.3.0 && \
+    ./autogen.sh && \
+    ./configure \
+      --prefix=/usr/local \
+      --enable-prof \
+      --enable-stats \
+      --enable-background-thread && \
+    make -j$(nproc) && \
+    make install && \
+    rm -rf /opt/build/jemalloc
+
+# -------------------------
+# Abseil 20240116.2
+# -------------------------
+RUN git clone https://github.com/abseil/abseil-cpp.git && \
+    cd abseil-cpp && \
+    git checkout 20240116.2 && \
+    mkdir build && cd build && \
+    cmake .. -GNinja \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+      -DCMAKE_INSTALL_PREFIX=/usr/local && \
+    ninja && ninja install && \
+    rm -rf /opt/build/abseil-cpp
+
+# -------------------------
+# Protobuf v27.3
+# -------------------------
+RUN git clone https://github.com/protocolbuffers/protobuf.git && \
+    cd protobuf && \
+    git checkout v27.3 && \
+    git submodule update --init --recursive && \
+    mkdir build && cd build && \
+    cmake .. -GNinja \
+      -Dprotobuf_BUILD_TESTS=OFF \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=/usr/local \
+      -Dprotobuf_ABSL_PROVIDER=package && \
+    ninja && ninja install && \
+    rm -rf /opt/build/protobuf
+
+# -------------------------
+# gRPC v1.66.2
+# -------------------------
+RUN git clone https://github.com/grpc/grpc.git && \
+    cd grpc && \
+    git checkout v1.66.2 && \
+    git submodule update --init --recursive && \
+    mkdir -p cmake/build && cd cmake/build && \
+    cmake ../.. -GNinja \
+      -DgRPC_INSTALL=ON \
+      -DgRPC_BUILD_TESTS=OFF \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=/usr/local \
+      -DgRPC_ABSL_PROVIDER=package \
+      -DgRPC_PROTOBUF_PROVIDER=package \
+      -DgRPC_SSL_PROVIDER=package \
+      -DgRPC_ZLIB_PROVIDER=package \
+      -DCMAKE_POLICY_VERSION_MINIMUM=3.5 && \
+    ninja && ninja install && \
+    rm -rf /opt/build/grpc
+
+# -------------------------
+# xsimd 12.1.0 (Arrow 15.0.2 dependency, header-only)
+# Kitware cmake >=3.31 errors on cmake_minimum_required(<3.5).  Arrow's
+# ExternalProject_Add for xsimd_ep does not pass CMAKE_POLICY_VERSION_MINIMUM,
+# so it fails.  Pre-installing xsimd lets Arrow find it via find_package and
+# skip the bundled build entirely.
+# -------------------------
+RUN git clone https://github.com/xtensor-stack/xsimd.git && \
+    cd xsimd && \
+    git checkout 12.1.0 && \
+    mkdir build && cd build && \
+    cmake .. -GNinja \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=/usr/local \
+      -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+      -DBUILD_TESTS=OFF && \
+    ninja install && \
+    rm -rf /opt/build/xsimd
+
+# -------------------------
+# Apache Arrow 15.0.2 (CUDA enabled)
+# xsimd_SOURCE=SYSTEM: use the pre-installed xsimd above; avoids the
+# ExternalProject_Add that fails with newer cmake.
+# -------------------------
+RUN git clone https://github.com/apache/arrow.git && \
+    cd arrow && \
+    git checkout apache-arrow-15.0.2 && \
+    cd cpp && \
+    mkdir build && cd build && \
+    cmake .. -GNinja \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=/usr/local \
+      -DARROW_BUILD_SHARED=ON \
+      -DARROW_PARQUET=ON \
+      -DARROW_DATASET=ON \
+      -DARROW_FILESYSTEM=ON \
+      -DARROW_WITH_ZLIB=ON \
+      -DARROW_WITH_ZSTD=ON \
+      -DARROW_WITH_SNAPPY=ON \
+      -DARROW_WITH_LZ4=ON \
+      -DARROW_WITH_BROTLI=ON \
+      -DARROW_BUILD_TESTS=OFF \
+      -DARROW_FLIGHT=OFF \
+      -DARROW_SIMD_LEVEL=NEON \
+      -DARROW_CUDA=ON \
+      -DARROW_CUDA_ARCH=87 \
+      -DCUDAToolkit_ROOT=/usr/local/cuda \
+      -Dxsimd_SOURCE=SYSTEM \
+      -DCMAKE_POLICY_VERSION_MINIMUM=3.5 && \
+    ninja && ninja install && \
+    rm -rf /opt/build/arrow
+
+# -------------------------
+# OpenTelemetry C++ v1.26.0
+# -------------------------
+RUN git clone https://github.com/open-telemetry/opentelemetry-cpp.git && \
+    cd opentelemetry-cpp && \
+    git checkout v1.26.0 && \
+    mkdir build && cd build && \
+    cmake .. -GNinja \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=/usr/local \
+      -DWITH_OTLP_GRPC=ON \
+      -DWITH_OTLP_HTTP=ON \
+      -DBUILD_TESTING=OFF \
+      -DWITH_BENCHMARK=OFF \
+      -DCMAKE_POLICY_VERSION_MINIMUM=3.5 && \
+    ninja && ninja install && \
+    rm -rf /opt/build/opentelemetry-cpp
+
+# -------------------------
+# FlatBuffers v25.12.19
+# -------------------------
+RUN git clone https://github.com/google/flatbuffers.git && \
+    cd flatbuffers && \
+    git checkout v25.12.19 && \
+    mkdir build && cd build && \
+    cmake .. -GNinja \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=/usr/local \
+      -DFLATBUFFERS_BUILD_TESTS=OFF && \
+    ninja && ninja install && \
+    rm -rf /opt/build/flatbuffers
+
+# =========================
+# Stage: Dev Image
+# =========================
+FROM builder AS dev
+
+ENV LD_PRELOAD=/usr/local/lib/libjemalloc.so
+ENV MALLOC_CONF=background_thread:true,metadata_thp:auto,dirty_decay_ms:5000,muzzy_decay_ms:5000,narenas:4
+
+RUN rm -rf /opt/build
+
+WORKDIR /workspace
+
+CMD ["/bin/bash"]
+
+# =========================
+# Stage: Runtime Image
+# =========================
+FROM nvcr.io/nvidia/l4t-base:r36.2.0 AS runtime
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# libcudart is NOT available as an apt package in l4t-base; on Jetson it is
+# provided at runtime by the NVIDIA container runtime (--runtime=nvidia).
+# All other shared libs that the built .so files depend on are installed here.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libstdc++6 \
+    ca-certificates \
+    libssl3 \
+    zlib1g \
+    libzstd1 \
+    libsnappy1v5 \
+    liblz4-1 \
+    libbrotli1 \
+    libboost-filesystem1.74.0 \
+    libutf8proc2 && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy only runtime artifacts
+COPY --from=builder /usr/local/lib /usr/local/lib
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+RUN ldconfig
+
+# Strip symbols to reduce size
+RUN find /usr/local/lib -name "*.so*" -exec strip --strip-unneeded {} + || true
+
+# jemalloc tuning
+ENV LD_PRELOAD=/usr/local/lib/libjemalloc.so
+ENV MALLOC_CONF=background_thread:true,metadata_thp:auto,dirty_decay_ms:5000,muzzy_decay_ms:5000,narenas:4
+ENV LD_LIBRARY_PATH=/usr/local/lib:${LD_LIBRARY_PATH:-}
+
+WORKDIR /app
+
+CMD ["/bin/bash"]
