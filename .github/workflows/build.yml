@@ -1,4 +1,4 @@
-name: Build JetPack Docker Images
+name: Build JetPack6 Docker Images
 
 on:
   push:
