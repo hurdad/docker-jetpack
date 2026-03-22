@@ -83,7 +83,7 @@ Builds and runs a small C++ and Python test suite that verifies all built librar
 docker build -f Dockerfile.jetpack6 --target test -t docker-jetpack6:test .
 ```
 
-Covers: Arrow array ops, Arrow CUDA, gRPC, Protobuf, FlatBuffers, jemalloc, PyArrow (arrays, Parquet roundtrip, CUDA buffer).
+Covers: Arrow (array ops, CUDA), gRPC, Protobuf, FlatBuffers, jemalloc, nats.c, nats-cpp, PyArrow (arrays, Parquet roundtrip, S3 init, CUDA buffer).
 
 ### Upstream library test suites
 
@@ -93,7 +93,7 @@ Rebuilds each library with its own test suite enabled and runs `ctest`. This is 
 docker build -f Dockerfile.jetpack6 --target test-libs -t docker-jetpack6:test-libs .
 ```
 
-Covers: jemalloc (`make check`), Abseil, Protobuf, xsimd, FlatBuffers, Arrow (non-CUDA), OpenTelemetry C++.
+Covers: jemalloc (`make check`), Abseil, Protobuf, xsimd, FlatBuffers, Arrow (non-CUDA, S3), OpenTelemetry C++, nats.c.
 
 > Arrow CUDA tests and gRPC tests are excluded from the build-time test suite. Arrow CUDA tests require `--runtime=nvidia` and must be run manually:
 > ```bash
