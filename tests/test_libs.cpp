@@ -9,7 +9,7 @@
 #include <google/protobuf/descriptor.h>
 
 // OpenTelemetry
-#include <opentelemetry/sdk/trace/tracer_provider.h>
+#include <opentelemetry/sdk/trace/tracer_provider_factory.h>
 
 // FlatBuffers
 #include <flatbuffers/flatbuffers.h>
@@ -28,7 +28,7 @@
 
 int main() {
     int failed = 0;
-    int total = 7;
+    int total = 8;
 
     // Arrow: build a simple int32 array
     try {
@@ -86,6 +86,13 @@ int main() {
         natscpp::connection_options opts;
         PASS("natscpp_options");
     } catch (const std::exception& e) { FAIL("natscpp_options", e.what()); }
+
+    // OpenTelemetry: create a tracer provider
+    try {
+        auto provider = opentelemetry::sdk::trace::TracerProviderFactory::Create();
+        assert(provider != nullptr);
+        PASS("otel_tracer_provider");
+    } catch (const std::exception& e) { FAIL("otel_tracer_provider", e.what()); }
 
     std::cout << "\n" << (total - failed) << "/" << total << " tests passed\n";
     return failed;
