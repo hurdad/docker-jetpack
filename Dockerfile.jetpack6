@@ -130,15 +130,16 @@ RUN git clone https://github.com/aws/aws-sdk-cpp.git && \
     cmake .. -GNinja \
       -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_INSTALL_PREFIX=/usr/local \
-      -DBUILD_ONLY="s3;identity-management;sts;cognito-identity" \
+      -DBUILD_ONLY="s3;identity-management;sts;cognito-identity;transfer;config" \
       -DBUILD_SHARED_LIBS=ON \
       -DENABLE_TESTING=OFF \
-      -DCMAKE_PREFIX_PATH=/usr/local && \
+      -DCMAKE_PREFIX_PATH=/usr/local \
+      -DCMAKE_POLICY_VERSION_MINIMUM=3.5 && \
     ninja && ninja install && \
     rm -rf /opt/build/aws-sdk-cpp
 
 # -------------------------
-# xsimd 12.1.0 (Arrow 23.0.1 dependency, header-only)
+# xsimd 13.2.0 (Arrow 23.0.1 dependency, requires >= 13.0.0, header-only)
 # Kitware cmake >=3.31 errors on cmake_minimum_required(<3.5).  Arrow's
 # ExternalProject_Add for xsimd_ep does not pass CMAKE_POLICY_VERSION_MINIMUM,
 # so it fails.  Pre-installing xsimd lets Arrow find it via find_package and
@@ -146,7 +147,7 @@ RUN git clone https://github.com/aws/aws-sdk-cpp.git && \
 # -------------------------
 RUN git clone https://github.com/xtensor-stack/xsimd.git && \
     cd xsimd && \
-    git checkout 12.1.0 && \
+    git checkout 13.2.0 && \
     mkdir build && cd build && \
     cmake .. -GNinja \
       -DCMAKE_BUILD_TYPE=Release \
@@ -180,6 +181,8 @@ RUN git clone https://github.com/apache/arrow.git && \
       -DARROW_WITH_BROTLI=ON \
       -DARROW_BUILD_TESTS=OFF \
       -DARROW_FLIGHT=OFF \
+      -DARROW_CSV=ON \
+      -DARROW_JSON=ON \
       -DARROW_S3=ON \
       -DARROW_SIMD_LEVEL=NEON \
       -DARROW_CUDA=ON \
@@ -347,7 +350,7 @@ RUN git clone https://github.com/protocolbuffers/protobuf.git && \
 # -------------------------
 RUN git clone https://github.com/xtensor-stack/xsimd.git && \
     cd xsimd && \
-    git checkout 12.1.0 && \
+    git checkout 13.2.0 && \
     mkdir build && cd build && \
     cmake .. -GNinja \
       -DCMAKE_BUILD_TYPE=Release \
