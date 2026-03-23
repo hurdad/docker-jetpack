@@ -37,7 +37,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libbrotli-dev \
     libboost-dev \
     libboost-filesystem-dev \
-    libthrift-dev \
     libutf8proc-dev \
     libcurl4-openssl-dev \
     python3-pip \
@@ -62,7 +61,8 @@ RUN git clone https://github.com/jemalloc/jemalloc.git && \
       --prefix=/usr/local \
       --enable-prof \
       --enable-stats \
-      --enable-background-thread && \
+      --enable-background-thread \
+      --disable-static && \
     make -j$(nproc) && \
     make install && \
     rm -rf /opt/build/jemalloc
@@ -77,7 +77,8 @@ RUN git clone https://github.com/abseil/abseil-cpp.git && \
     cmake .. -GNinja \
       -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
-      -DCMAKE_INSTALL_PREFIX=/usr/local && \
+      -DCMAKE_INSTALL_PREFIX=/usr/local \
+      -DBUILD_SHARED_LIBS=ON && \
     ninja && ninja install && \
     rm -rf /opt/build/abseil-cpp
 
@@ -93,7 +94,8 @@ RUN git clone https://github.com/protocolbuffers/protobuf.git && \
       -Dprotobuf_BUILD_TESTS=OFF \
       -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_INSTALL_PREFIX=/usr/local \
-      -Dprotobuf_ABSL_PROVIDER=package && \
+      -Dprotobuf_ABSL_PROVIDER=package \
+      -DBUILD_SHARED_LIBS=ON && \
     ninja && ninja install && \
     rm -rf /opt/build/protobuf
 
@@ -114,7 +116,8 @@ RUN git clone https://github.com/grpc/grpc.git && \
       -DgRPC_PROTOBUF_PROVIDER=package \
       -DgRPC_SSL_PROVIDER=package \
       -DgRPC_ZLIB_PROVIDER=package \
-      -DCMAKE_POLICY_VERSION_MINIMUM=3.5 && \
+      -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+      -DBUILD_SHARED_LIBS=ON && \
     ninja && ninja install && \
     rm -rf /opt/build/grpc
 
@@ -171,8 +174,9 @@ RUN git clone https://github.com/apache/arrow.git && \
       -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_INSTALL_PREFIX=/usr/local \
       -DARROW_BUILD_SHARED=ON \
-      -DARROW_PARQUET=ON \
-      -DARROW_DATASET=ON \
+      -DARROW_BUILD_STATIC=OFF \
+      -DARROW_COMPUTE=OFF \
+      -DARROW_DATASET=OFF \
       -DARROW_FILESYSTEM=ON \
       -DARROW_WITH_ZLIB=ON \
       -DARROW_WITH_ZSTD=ON \
@@ -195,12 +199,11 @@ RUN git clone https://github.com/apache/arrow.git && \
     pip3 install --no-cache-dir cython numpy && \
     ARROW_HOME=/usr/local \
     PYARROW_WITH_CUDA=1 \
-    PYARROW_WITH_PARQUET=1 \
-    PYARROW_WITH_DATASET=1 \
     PYARROW_WITH_FILESYSTEM=1 \
     PYARROW_WITH_S3=1 \
-    pip3 install --no-cache-dir --no-build-isolation . && \
-    rm -rf /opt/build/arrow
+    pip3 wheel --no-cache-dir --no-build-isolation -w /tmp/pyarrow_wheels . && \
+    pip3 install --no-cache-dir /tmp/pyarrow_wheels/pyarrow-*.whl && \
+    rm -rf /tmp/pyarrow_wheels /opt/build/arrow
 
 # -------------------------
 # OpenTelemetry C++ v1.26.0
@@ -216,7 +219,8 @@ RUN git clone https://github.com/open-telemetry/opentelemetry-cpp.git && \
       -DWITH_OTLP_HTTP=ON \
       -DBUILD_TESTING=OFF \
       -DWITH_BENCHMARK=OFF \
-      -DCMAKE_POLICY_VERSION_MINIMUM=3.5 && \
+      -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+      -DBUILD_SHARED_LIBS=ON && \
     ninja && ninja install && \
     rm -rf /opt/build/opentelemetry-cpp
 
@@ -230,12 +234,17 @@ RUN git clone https://github.com/google/flatbuffers.git && \
     cmake .. -GNinja \
       -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_INSTALL_PREFIX=/usr/local \
-      -DFLATBUFFERS_BUILD_TESTS=OFF && \
+      -DFLATBUFFERS_BUILD_TESTS=OFF \
+      -DFLATBUFFERS_BUILD_SHAREDLIB=ON \
+      -DFLATBUFFERS_BUILD_FLATLIB=OFF && \
     ninja && ninja install && \
     rm -rf /opt/build/flatbuffers
 
 # -------------------------
 # nats.c v3.12.0
+# Built and installed before nats-cpp (natscpp cmake requires libnats).
+# Build dir kept alive so we can re-install after natscpp overwrites
+# nats/nats.h with its #include_next shim.
 # -------------------------
 RUN git clone https://github.com/nats-io/nats.c.git && \
     cd nats.c && \
@@ -245,13 +254,14 @@ RUN git clone https://github.com/nats-io/nats.c.git && \
       -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_INSTALL_PREFIX=/usr/local \
       -DNATS_BUILD_WITH_TLS=ON \
-      -DNATS_BUILD_STREAMING=OFF && \
-    ninja && ninja install && \
-    rm -rf /opt/build/nats.c
+      -DNATS_BUILD_STREAMING=OFF \
+      -DBUILD_SHARED_LIBS=ON && \
+    ninja && ninja install
 
 # -------------------------
 # nats-cpp (header-only, main)
-# Uses system nats.c via pkg-config (no submodule init)
+# Installs a nats/nats.h shim (uses #include_next) that overwrites the
+# real libnats header. Re-run nats.c install afterward to restore it.
 # -------------------------
 RUN git clone https://github.com/hurdad/nats-cpp.git && \
     cd nats-cpp && \
@@ -262,7 +272,9 @@ RUN git clone https://github.com/hurdad/nats-cpp.git && \
       -DBUILD_TESTING=OFF \
       -DNATSCPP_BUILD_EXAMPLES=OFF && \
     ninja install && \
-    rm -rf /opt/build/nats-cpp
+    rm -rf /opt/build/nats-cpp && \
+    cd /opt/build/nats.c/build && ninja install && \
+    rm -rf /opt/build/nats.c
 
 # =========================
 # Stage: Test (smoke tests)
@@ -386,8 +398,9 @@ RUN git clone https://github.com/apache/arrow.git && \
       -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_INSTALL_PREFIX=/usr/local \
       -DARROW_BUILD_SHARED=ON \
-      -DARROW_PARQUET=ON \
-      -DARROW_DATASET=ON \
+      -DARROW_BUILD_STATIC=OFF \
+      -DARROW_COMPUTE=OFF \
+      -DARROW_DATASET=OFF \
       -DARROW_FILESYSTEM=ON \
       -DARROW_WITH_ZLIB=ON \
       -DARROW_WITH_ZSTD=ON \

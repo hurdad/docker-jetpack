@@ -1,9 +1,7 @@
 import pyarrow as pa
-import pyarrow.parquet as pq
 import pyarrow.cuda as cuda
 import pyarrow.fs as pafs
 import numpy as np
-import tempfile, os
 
 def test_version():
     print(f"pyarrow version: {pa.__version__}")
@@ -21,14 +19,6 @@ def test_record_batch():
     })
     assert batch.num_rows == 3
     assert batch.num_columns == 2
-
-def test_parquet_roundtrip():
-    table = pa.table({"a": [1, 2, 3], "b": ["x", "y", "z"]})
-    with tempfile.TemporaryDirectory() as tmp:
-        path = os.path.join(tmp, "test.parquet")
-        pq.write_table(table, path)
-        result = pq.read_table(path)
-        assert result.equals(table)
 
 def test_s3_filesystem():
     # Verify S3 support is compiled in — does not require network or credentials
@@ -57,8 +47,7 @@ def test_cuda_buffer():
 
 if __name__ == "__main__":
     tests = [test_version, test_basic_array, test_record_batch,
-             test_parquet_roundtrip, test_s3_filesystem,
-             test_cuda_context, test_cuda_buffer]
+             test_s3_filesystem, test_cuda_context, test_cuda_buffer]
     failed = 0
     for t in tests:
         try:

@@ -3,7 +3,6 @@
 
 // Arrow
 #include <arrow/api.h>
-#include <arrow/gpu/cuda_api.h>
 
 // gRPC / Protobuf
 #include <grpcpp/grpcpp.h>
@@ -22,14 +21,14 @@
 #include <nats/nats.h>
 
 // nats-cpp
-#include <nats-cpp/nats.hpp>
+#include <natscpp/natscpp.hpp>
 
 #define PASS(name) std::cout << "  PASS  " << name << "\n"
 #define FAIL(name, msg) std::cout << "  FAIL  " << name << ": " << msg << "\n"; failed++
 
 int main() {
     int failed = 0;
-    int total = 8;
+    int total = 7;
 
     // Arrow: build a simple int32 array
     try {
@@ -40,17 +39,6 @@ int main() {
         assert(arr->length() == 5);
         PASS("arrow_array");
     } catch (const std::exception& e) { FAIL("arrow_array", e.what()); }
-
-    // Arrow CUDA: initialise CUDA memory manager (skipped if no GPU)
-    try {
-        auto mgr = arrow::cuda::CudaDeviceManager::Instance();
-        if (mgr.ok() && mgr.ValueOrDie()->num_devices() > 0) {
-            PASS("arrow_cuda_manager");
-        } else {
-            std::cout << "  SKIP  arrow_cuda_manager (no GPU)\n";
-            total--;
-        }
-    } catch (const std::exception& e) { FAIL("arrow_cuda_manager", e.what()); }
 
     // gRPC: create a channel
     try {
@@ -73,11 +61,15 @@ int main() {
         PASS("flatbuffers_builder");
     } catch (const std::exception& e) { FAIL("flatbuffers_builder", e.what()); }
 
-    // jemalloc: allocate and free
+    // jemalloc: allocate via malloc (jemalloc is LD_PRELOADed); verify active via mallctl
     try {
-        void* p = je_malloc(1024);
+        void* p = malloc(1024);
         assert(p != nullptr);
-        je_free(p);
+        free(p);
+        size_t epoch = 1;
+        size_t sz = sizeof(epoch);
+        int ret = mallctl("epoch", &epoch, &sz, &epoch, sz);
+        assert(ret == 0);
         PASS("jemalloc_alloc");
     } catch (const std::exception& e) { FAIL("jemalloc_alloc", e.what()); }
 
@@ -91,7 +83,7 @@ int main() {
 
     // nats-cpp: default options instantiation
     try {
-        nats::ConnectionOptions opts;
+        natscpp::connection_options opts;
         PASS("natscpp_options");
     } catch (const std::exception& e) { FAIL("natscpp_options", e.what()); }
 
