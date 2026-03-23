@@ -28,6 +28,8 @@ target_link_libraries(test_libs PRIVATE
     opentelemetry_metrics
     opentelemetry_logs
     opentelemetry_sdk
+    opentelemetry_exporter_ostream_span
+    opentelemetry_exporter_ostream_metrics
     opentelemetry_exporter_ostream_logs
 )
 

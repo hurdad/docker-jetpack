@@ -14,7 +14,11 @@
 
 // OpenTelemetry
 #include <opentelemetry/sdk/trace/tracer_provider_factory.h>
+#include <opentelemetry/sdk/trace/simple_processor_factory.h>
+#include <opentelemetry/exporters/ostream/span_exporter_factory.h>
 #include <opentelemetry/sdk/metrics/meter_provider_factory.h>
+#include <opentelemetry/sdk/metrics/export/periodic_exporting_metric_reader_factory.h>
+#include <opentelemetry/exporters/ostream/metric_exporter_factory.h>
 #include <opentelemetry/sdk/logs/logger_provider_factory.h>
 #include <opentelemetry/sdk/logs/simple_log_record_processor_factory.h>
 #include <opentelemetry/exporters/ostream/log_record_exporter_factory.h>
@@ -115,19 +119,27 @@ int main() {
 
     // OpenTelemetry: tracer provider
     try {
-        auto provider = opentelemetry::sdk::trace::TracerProviderFactory::Create();
+        auto exporter = opentelemetry::exporter::trace::OStreamSpanExporterFactory::Create();
+        auto processor = opentelemetry::sdk::trace::SimpleSpanProcessorFactory::Create(std::move(exporter));
+        auto provider = opentelemetry::sdk::trace::TracerProviderFactory::Create(std::move(processor));
         assert(provider != nullptr);
         PASS("otel_tracer_provider");
     } catch (const std::exception& e) { FAIL("otel_tracer_provider", e.what()); }
 
     // OpenTelemetry: meter provider
     try {
+        auto exporter = opentelemetry::exporter::metrics::OStreamMetricExporterFactory::Create();
+        opentelemetry::sdk::metrics::PeriodicExportingMetricReaderOptions opts;
+        auto reader = opentelemetry::sdk::metrics::PeriodicExportingMetricReaderFactory::Create(
+            std::move(exporter), opts);
         auto provider = opentelemetry::sdk::metrics::MeterProviderFactory::Create();
+        static_cast<opentelemetry::sdk::metrics::MeterProvider*>(provider.get())
+            ->AddMetricReader(std::move(reader));
         assert(provider != nullptr);
         PASS("otel_meter_provider");
     } catch (const std::exception& e) { FAIL("otel_meter_provider", e.what()); }
 
-    // OpenTelemetry: logger provider (requires a processor + exporter)
+    // OpenTelemetry: logger provider
     try {
         auto exporter = opentelemetry::exporter::logs::OStreamLogRecordExporterFactory::Create();
         auto processor = opentelemetry::sdk::logs::SimpleLogRecordProcessorFactory::Create(std::move(exporter));
