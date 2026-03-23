@@ -20,7 +20,7 @@ target_link_libraries(test_libs PRIVATE
     Arrow::arrow_shared
     gRPC::grpc++
     protobuf::libprotobuf
-    flatbuffers::flatbuffers
+    flatbuffers::flatbuffers_shared
     jemalloc
     natscpp::natscpp
     AWS::aws-sdk-cpp-core
