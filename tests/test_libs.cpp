@@ -3,6 +3,10 @@
 
 // Arrow
 #include <arrow/api.h>
+#include <arrow/filesystem/s3fs.h>
+
+// AWS SDK
+#include <aws/core/Aws.h>
 
 // gRPC / Protobuf
 #include <grpcpp/grpcpp.h>
@@ -30,7 +34,7 @@
 
 int main() {
     int failed = 0;
-    int total = 10;
+    int total = 13;
 
     // Arrow: build a simple int32 array
     try {
@@ -41,6 +45,22 @@ int main() {
         assert(arr->length() == 5);
         PASS("arrow_array");
     } catch (const std::exception& e) { FAIL("arrow_array", e.what()); }
+
+    // Arrow S3: initialize and finalize (no network required)
+    try {
+        auto status = arrow::fs::EnsureS3Initialized();
+        assert(status.ok());
+        PASS("arrow_s3_init");
+        arrow::fs::EnsureS3Finalized().ok();
+    } catch (const std::exception& e) { FAIL("arrow_s3_init", e.what()); }
+
+    // AWS SDK: init and shutdown
+    try {
+        Aws::SDKOptions options;
+        Aws::InitAPI(options);
+        Aws::ShutdownAPI(options);
+        PASS("aws_sdk_init");
+    } catch (const std::exception& e) { FAIL("aws_sdk_init", e.what()); }
 
     // gRPC: create a channel
     try {
@@ -63,19 +83,20 @@ int main() {
         PASS("flatbuffers_builder");
     } catch (const std::exception& e) { FAIL("flatbuffers_builder", e.what()); }
 
-    // jemalloc: allocate via malloc (jemalloc is LD_PRELOADed); verify active via mallctl
+    // jemalloc: verify active via mallctl epoch + stats.allocated
     try {
         void* p = malloc(1024);
         assert(p != nullptr);
         free(p);
-        size_t epoch = 1;
-        size_t sz = sizeof(epoch);
-        int ret = mallctl("epoch", &epoch, &sz, &epoch, sz);
-        assert(ret == 0);
+        size_t epoch = 1, sz = sizeof(epoch);
+        assert(mallctl("epoch", &epoch, &sz, &epoch, sz) == 0);
+        size_t allocated = 0; sz = sizeof(allocated);
+        assert(mallctl("stats.allocated", &allocated, &sz, nullptr, 0) == 0);
+        assert(allocated > 0);
         PASS("jemalloc_alloc");
     } catch (const std::exception& e) { FAIL("jemalloc_alloc", e.what()); }
 
-    // nats.c: library version and compatibility
+    // nats.c: version and ABI compatibility
     try {
         const char* ver = nats_GetVersion();
         std::cout << "    nats.c version: " << ver << "\n";

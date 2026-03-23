@@ -97,7 +97,7 @@ Builds and runs a small C++ and Python test suite that verifies all built librar
 docker build -f Dockerfile.jetpack6 --target test -t docker-jetpack6:test .
 ```
 
-Covers: Arrow (array ops, CUDA), gRPC, Protobuf, FlatBuffers, jemalloc, nats.c, nats-cpp. Arrow Dataset disabled.
+Covers: Arrow (array ops, S3 init, CUDA), AWS SDK, gRPC, Protobuf, FlatBuffers, jemalloc, nats.c, nats-cpp, OpenTelemetry (trace/metrics/logs). Arrow Compute and Dataset disabled.
 
 ### Upstream library test suites
 

@@ -8,6 +8,7 @@ find_package(ArrowCUDA REQUIRED)
 find_package(gRPC REQUIRED)
 find_package(Protobuf REQUIRED)
 find_package(Flatbuffers REQUIRED)
+find_package(AWSSDK REQUIRED COMPONENTS core)
 find_package(opentelemetry-cpp REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(NATS REQUIRED IMPORTED_TARGET libnats)
@@ -22,6 +23,7 @@ target_link_libraries(test_libs PRIVATE
     flatbuffers::flatbuffers
     jemalloc
     natscpp::natscpp
+    AWS::aws-sdk-cpp-core
     opentelemetry_trace
     opentelemetry_metrics
     opentelemetry_logs

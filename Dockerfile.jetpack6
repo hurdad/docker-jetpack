@@ -166,6 +166,7 @@ RUN curl -fsSL https://archive.apache.org/dist/arrow/arrow-23.0.1/apache-arrow-2
       -DCMAKE_INSTALL_PREFIX=/usr/local \
       -DARROW_BUILD_SHARED=ON \
       -DARROW_BUILD_STATIC=OFF \
+      -DARROW_COMPUTE=OFF \
       -DARROW_DATASET=OFF \
       -DARROW_FILESYSTEM=ON \
       -DARROW_WITH_ZLIB=ON \
@@ -373,6 +374,7 @@ RUN curl -fsSL https://archive.apache.org/dist/arrow/arrow-23.0.1/apache-arrow-2
       -DCMAKE_INSTALL_PREFIX=/usr/local \
       -DARROW_BUILD_SHARED=ON \
       -DARROW_BUILD_STATIC=OFF \
+      -DARROW_COMPUTE=OFF \
       -DARROW_DATASET=OFF \
       -DARROW_FILESYSTEM=ON \
       -DARROW_WITH_ZLIB=ON \
