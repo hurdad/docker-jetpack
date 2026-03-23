@@ -27,7 +27,6 @@ target_link_libraries(test_libs PRIVATE
     opentelemetry_trace
     opentelemetry_metrics
     opentelemetry_logs
-    opentelemetry_sdk
     opentelemetry_exporter_otlp_grpc
     opentelemetry_exporter_otlp_grpc_metrics
     opentelemetry_exporter_otlp_grpc_log
