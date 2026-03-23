@@ -75,11 +75,12 @@ int main() {
         PASS("jemalloc_alloc");
     } catch (const std::exception& e) { FAIL("jemalloc_alloc", e.what()); }
 
-    // nats.c: library version
+    // nats.c: library version and compatibility
     try {
         const char* ver = nats_GetVersion();
         std::cout << "    nats.c version: " << ver << "\n";
         assert(nats_GetVersionNumber() >= 0x030C00); // >= 3.12.0
+        assert(nats_CheckCompatibility() == NATS_OK);
         PASS("natsc_version");
     } catch (const std::exception& e) { FAIL("natsc_version", e.what()); }
 
