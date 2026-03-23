@@ -15,13 +15,13 @@
 // OpenTelemetry
 #include <opentelemetry/sdk/trace/tracer_provider_factory.h>
 #include <opentelemetry/sdk/trace/simple_processor_factory.h>
-#include <opentelemetry/exporters/ostream/span_exporter_factory.h>
+#include <opentelemetry/exporters/otlp/otlp_grpc_exporter_factory.h>
 #include <opentelemetry/sdk/metrics/meter_provider_factory.h>
 #include <opentelemetry/sdk/metrics/export/periodic_exporting_metric_reader_factory.h>
-#include <opentelemetry/exporters/ostream/metric_exporter_factory.h>
+#include <opentelemetry/exporters/otlp/otlp_grpc_metric_exporter_factory.h>
 #include <opentelemetry/sdk/logs/logger_provider_factory.h>
 #include <opentelemetry/sdk/logs/simple_log_record_processor_factory.h>
-#include <opentelemetry/exporters/ostream/log_record_exporter_factory.h>
+#include <opentelemetry/exporters/otlp/otlp_grpc_log_record_exporter_factory.h>
 
 // FlatBuffers
 #include <flatbuffers/flatbuffers.h>
@@ -117,18 +117,18 @@ int main() {
         PASS("natscpp_options");
     } catch (const std::exception& e) { FAIL("natscpp_options", e.what()); }
 
-    // OpenTelemetry: tracer provider
+    // OpenTelemetry: tracer provider (OTLP/gRPC)
     try {
-        auto exporter = opentelemetry::exporter::trace::OStreamSpanExporterFactory::Create();
+        auto exporter = opentelemetry::exporter::otlp::OtlpGrpcExporterFactory::Create();
         auto processor = opentelemetry::sdk::trace::SimpleSpanProcessorFactory::Create(std::move(exporter));
         auto provider = opentelemetry::sdk::trace::TracerProviderFactory::Create(std::move(processor));
         assert(provider != nullptr);
         PASS("otel_tracer_provider");
     } catch (const std::exception& e) { FAIL("otel_tracer_provider", e.what()); }
 
-    // OpenTelemetry: meter provider
+    // OpenTelemetry: meter provider (OTLP/gRPC)
     try {
-        auto exporter = opentelemetry::exporter::metrics::OStreamMetricExporterFactory::Create();
+        auto exporter = opentelemetry::exporter::otlp::OtlpGrpcMetricExporterFactory::Create();
         opentelemetry::sdk::metrics::PeriodicExportingMetricReaderOptions opts;
         auto reader = opentelemetry::sdk::metrics::PeriodicExportingMetricReaderFactory::Create(
             std::move(exporter), opts);
@@ -139,9 +139,9 @@ int main() {
         PASS("otel_meter_provider");
     } catch (const std::exception& e) { FAIL("otel_meter_provider", e.what()); }
 
-    // OpenTelemetry: logger provider
+    // OpenTelemetry: logger provider (OTLP/gRPC)
     try {
-        auto exporter = opentelemetry::exporter::logs::OStreamLogRecordExporterFactory::Create();
+        auto exporter = opentelemetry::exporter::otlp::OtlpGrpcLogRecordExporterFactory::Create();
         auto processor = opentelemetry::sdk::logs::SimpleLogRecordProcessorFactory::Create(std::move(exporter));
         auto provider = opentelemetry::sdk::logs::LoggerProviderFactory::Create(std::move(processor));
         assert(provider != nullptr);
