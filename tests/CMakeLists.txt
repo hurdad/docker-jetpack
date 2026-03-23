@@ -23,7 +23,7 @@ target_link_libraries(test_libs PRIVATE
     flatbuffers::flatbuffers_shared
     jemalloc
     natscpp::natscpp
-    AWS::aws-sdk-cpp-core
+    ${AWSSDK_LINK_LIBRARIES}
     opentelemetry_trace
     opentelemetry_metrics
     opentelemetry_logs
