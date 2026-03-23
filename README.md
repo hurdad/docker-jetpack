@@ -16,12 +16,12 @@ Pre-built images are published to [GitHub Container Registry](https://github.com
 | TensorRT | 8.x | — | — | — | High-performance deep learning inference |
 | [jemalloc](https://github.com/jemalloc/jemalloc) | 5.3.0 | May 2019 | 6.7 MB | 20 KB | Memory allocator with profiling and background thread support |
 | [Abseil](https://github.com/abseil/abseil-cpp) | 20240116.2 | Apr 2024 | 24 KB¹ | 4.4 MB | Google C++ common libraries |
-| [Protobuf](https://github.com/protocolbuffers/protobuf) | v27.3 | Jul 2024 | 3.6 MB | 4.5 MB² | Protocol Buffers serialization |
-| [gRPC](https://github.com/grpc/grpc) | v1.66.2 | Sep 2024 | 13 MB³ | 544 KB | High-performance RPC framework |
-| [AWS SDK C++](https://github.com/aws/aws-sdk-cpp) | 1.11.350 | Jun 2024 | 2.0 MB⁴ | 13 MB | S3, STS, IAM, Cognito, Transfer, Config — required for Arrow S3 support |
+| [Protobuf](https://github.com/protocolbuffers/protobuf) | v27.3 | Jul 2024 | 4.9 MB² | 4.5 MB³ | Protocol Buffers serialization |
+| [gRPC](https://github.com/grpc/grpc) | v1.66.2 | Sep 2024 | 13 MB⁴ | 544 KB | High-performance RPC framework |
+| [AWS SDK C++](https://github.com/aws/aws-sdk-cpp) | 1.11.350 | Jun 2024 | 2.9 MB⁵ | 13 MB | S3, STS, IAM, Cognito, Transfer, Config — required for Arrow S3 support |
 | [xsimd](https://github.com/xtensor-stack/xsimd) | 13.2.0 | — | — | 1.6 MB | SIMD intrinsics wrapper (Arrow dependency, header-only) |
-| [Apache Arrow](https://github.com/apache/arrow) | 23.0.1 | Feb 2025 | 19 MB⁵ | 3.9 MB | Columnar in-memory analytics with CUDA, S3, CSV and JSON support |
-| [OpenTelemetry C++](https://github.com/open-telemetry/opentelemetry-cpp) | v1.26.0 | Mar 2025 | 992 KB⁶ | 5.1 MB | Observability — traces, metrics, logs with OTLP/gRPC and OTLP/HTTP exporters |
+| [Apache Arrow](https://github.com/apache/arrow) | 23.0.1 | Feb 2025 | 19 MB⁶ | 3.9 MB | Columnar in-memory analytics with CUDA, S3, CSV and JSON support |
+| [OpenTelemetry C++](https://github.com/open-telemetry/opentelemetry-cpp) | v1.26.0 | Mar 2025 | 992 KB⁷ | 5.1 MB | Observability — traces, metrics, logs with OTLP/gRPC and OTLP/HTTP exporters |
 | [FlatBuffers](https://github.com/google/flatbuffers) | v25.12.19 | Dec 2024 | 704 KB | 528 KB | Memory-efficient serialization library |
 | [nats.c](https://github.com/nats-io/nats.c) | v3.12.0 | Nov 2024 | 577 KB | 452 KB | NATS messaging C client with TLS support |
 | [nats-cpp](https://github.com/hurdad/nats-cpp) | main | — | — | 148 KB | Header-only C++20 wrapper for nats.c |
@@ -29,21 +29,28 @@ Pre-built images are published to [GitHub Container Registry](https://github.com
 <details>
 <summary>Size footnotes</summary>
 
-¹ Abseil installs ~80 small shared libs; `libabsl_base.so` shown; largest is `libabsl_synchronization.so` (~100 KB).
-² Protobuf headers live under `google/` (4.5 MB total, shared with other Google libs).
-³ `libgrpc.so` 13 MB; `libgrpc++.so` 1.4 MB; `libgpr.so` ~200 KB.
-⁴ AWS SDK core (2.0 MB); s3 (2.9 MB); config (2.3 MB); iam (2.9 MB); plus CRT layer (s2n, aws-crt-cpp, aws-c-* ~8 MB combined).
-⁵ `libarrow.so` 19 MB; `libarrow_cuda.so` 276 KB. Compute and Dataset disabled.
-⁶ `libopentelemetry_metrics.so` 992 KB; `libopentelemetry_logs.so` 708 KB; `libopentelemetry_trace.so` 352 KB.
+¹ Abseil installs 86 small shared libs. Largest: `libabsl_strings.so` 164 KB, `libabsl_time_zone.so` 140 KB, `libabsl_cord.so` 137 KB, `libabsl_str_format_internal.so` 126 KB, `libabsl_time.so` 108 KB, `libabsl_flags_parse.so` 82 KB, `libabsl_cord_internal.so` 79 KB, `libabsl_synchronization.so` 76 KB; remainder < 60 KB each.
+
+² Protobuf ships 3 shared libs: `libprotoc.so` 4.9 MB (compiler), `libprotobuf.so` 3.6 MB (runtime), `libprotobuf-lite.so` 673 KB (lite runtime).
+
+³ Protobuf headers live under `google/` (4.5 MB total, shared with other Google libs).
+
+⁴ gRPC shared libs: `libgrpc.so` 13 MB, `libgrpc_unsecure.so` 8.2 MB, `libgrpc_authorization_provider.so` 3.9 MB, `libgrpc++.so` 1.4 MB, `libgrpc++_unsecure.so` 761 KB, `libgrpcpp_channelz.so` 696 KB, `libgrpc++_reflection.so` 679 KB, `libgrpc_plugin_support.so` 545 KB, `libgrpc++_alts.so` 34 KB, `libgrpc++_error_details.so` 7.6 KB.
+
+⁵ AWS SDK ships 21 shared libs. SDK modules: `libaws-cpp-sdk-s3.so` 2.9 MB, `libaws-cpp-sdk-iam.so` 2.9 MB, `libaws-cpp-sdk-config.so` 2.3 MB, `libaws-cpp-sdk-core.so` 2.0 MB, `libaws-cpp-sdk-cognito-identity.so` 589 KB, `libaws-cpp-sdk-sts.so` 330 KB, `libaws-cpp-sdk-transfer.so` 288 KB, `libaws-cpp-sdk-access-management.so` 286 KB, `libaws-cpp-sdk-identity-management.so` 182 KB. CRT layer: `libaws-crt-cpp.so` 879 KB, `libaws-c-http.so` 453 KB, `libaws-c-mqtt.so` 361 KB, `libaws-c-io.so` 345 KB, `libaws-c-common.so` 319 KB, `libaws-c-auth.so` 256 KB, `libaws-c-s3.so` 252 KB, `libaws-c-sdkutils.so` 123 KB, `libaws-c-event-stream.so` 108 KB, `libaws-c-cal.so` 97 KB, `libaws-checksums.so` 45 KB, `libaws-c-compression.so` 18 KB.
+
+⁶ Arrow shared libs: `libarrow.so` 19 MB, `libarrow_cuda.so` 275 KB. Compute and Dataset disabled (no `libarrow_compute`, `libarrow_acero`, `libarrow_dataset`).
+
+⁷ OpenTelemetry ships 33 shared libs. Core: `libopentelemetry_metrics.so` 992 KB, `libopentelemetry_logs.so` 708 KB, `libopentelemetry_proto.so` 459 KB, `libopentelemetry_trace.so` 351 KB, `libopentelemetry_proto_grpc.so` 289 KB, `libopentelemetry_http_client_curl.so` 222 KB, `libopentelemetry_otlp_recordable.so` 179 KB, `libopentelemetry_resources.so` 72 KB, `libopentelemetry_common.so` 65 KB, `libopentelemetry_version.so` 8.4 KB. Exporters: `libopentelemetry_exporter_otlp_http_client.so` 162 KB, `libopentelemetry_exporter_ostream_span.so` 110 KB, `libopentelemetry_exporter_in_memory_metric.so` 93 KB, `libopentelemetry_exporter_in_memory.so` 91 KB, `libopentelemetry_exporter_otlp_grpc_client.so` 81 KB, `libopentelemetry_exporter_ostream_metrics.so` 81 KB, `libopentelemetry_exporter_otlp_grpc_metrics.so` 75 KB, `libopentelemetry_exporter_otlp_grpc_log.so` 75 KB, `libopentelemetry_exporter_otlp_grpc.so` 75 KB, `libopentelemetry_exporter_otlp_http_metric.so` 73 KB, `libopentelemetry_exporter_otlp_http_log.so` 73 KB, `libopentelemetry_exporter_otlp_http.so` 73 KB, `libopentelemetry_exporter_ostream_logs.so` 49 KB; plus 10 builder libs (14–37 KB each).
 
 </details>
 
 ## Images
 
-| Image | Description |
-|---|---|
-| `ghcr.io/hurdad/docker-jetpack6:latest` | Runtime — minimal libs only |
-| `ghcr.io/hurdad/docker-jetpack6:latest-dev` | Dev — includes build tools and headers |
+| Image | Size | Description |
+|---|---|---|
+| `ghcr.io/hurdad/docker-jetpack6:latest` | ~1.2 GB | Runtime — minimal libs only |
+| `ghcr.io/hurdad/docker-jetpack6:latest-dev` | ~13 GB | Dev — includes build tools and headers |
 
 ## Pull
 
