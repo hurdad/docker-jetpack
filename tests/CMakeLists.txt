@@ -28,6 +28,7 @@ target_link_libraries(test_libs PRIVATE
     opentelemetry_metrics
     opentelemetry_logs
     opentelemetry_sdk
+    opentelemetry_exporter_ostream_logs
 )
 
 # CUDA smoke test — requires --runtime=nvidia at runtime; built but not run during build

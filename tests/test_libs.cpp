@@ -16,6 +16,8 @@
 #include <opentelemetry/sdk/trace/tracer_provider_factory.h>
 #include <opentelemetry/sdk/metrics/meter_provider_factory.h>
 #include <opentelemetry/sdk/logs/logger_provider_factory.h>
+#include <opentelemetry/sdk/logs/simple_log_record_processor_factory.h>
+#include <opentelemetry/exporters/ostream/log_record_exporter_factory.h>
 
 // FlatBuffers
 #include <flatbuffers/flatbuffers.h>
@@ -125,9 +127,11 @@ int main() {
         PASS("otel_meter_provider");
     } catch (const std::exception& e) { FAIL("otel_meter_provider", e.what()); }
 
-    // OpenTelemetry: logger provider
+    // OpenTelemetry: logger provider (requires a processor + exporter)
     try {
-        auto provider = opentelemetry::sdk::logs::LoggerProviderFactory::Create();
+        auto exporter = opentelemetry::exporter::logs::OStreamLogRecordExporterFactory::Create();
+        auto processor = opentelemetry::sdk::logs::SimpleLogRecordProcessorFactory::Create(std::move(exporter));
+        auto provider = opentelemetry::sdk::logs::LoggerProviderFactory::Create(std::move(processor));
         assert(provider != nullptr);
         PASS("otel_logger_provider");
     } catch (const std::exception& e) { FAIL("otel_logger_provider", e.what()); }
