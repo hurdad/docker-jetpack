@@ -10,6 +10,8 @@
 
 // OpenTelemetry
 #include <opentelemetry/sdk/trace/tracer_provider_factory.h>
+#include <opentelemetry/sdk/metrics/meter_provider_factory.h>
+#include <opentelemetry/sdk/logs/logger_provider_factory.h>
 
 // FlatBuffers
 #include <flatbuffers/flatbuffers.h>
@@ -28,7 +30,7 @@
 
 int main() {
     int failed = 0;
-    int total = 8;
+    int total = 10;
 
     // Arrow: build a simple int32 array
     try {
@@ -87,12 +89,26 @@ int main() {
         PASS("natscpp_options");
     } catch (const std::exception& e) { FAIL("natscpp_options", e.what()); }
 
-    // OpenTelemetry: create a tracer provider
+    // OpenTelemetry: tracer provider
     try {
         auto provider = opentelemetry::sdk::trace::TracerProviderFactory::Create();
         assert(provider != nullptr);
         PASS("otel_tracer_provider");
     } catch (const std::exception& e) { FAIL("otel_tracer_provider", e.what()); }
+
+    // OpenTelemetry: meter provider
+    try {
+        auto provider = opentelemetry::sdk::metrics::MeterProviderFactory::Create();
+        assert(provider != nullptr);
+        PASS("otel_meter_provider");
+    } catch (const std::exception& e) { FAIL("otel_meter_provider", e.what()); }
+
+    // OpenTelemetry: logger provider
+    try {
+        auto provider = opentelemetry::sdk::logs::LoggerProviderFactory::Create();
+        assert(provider != nullptr);
+        PASS("otel_logger_provider");
+    } catch (const std::exception& e) { FAIL("otel_logger_provider", e.what()); }
 
     std::cout << "\n" << (total - failed) << "/" << total << " tests passed\n";
     return failed;

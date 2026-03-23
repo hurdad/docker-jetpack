@@ -23,6 +23,8 @@ target_link_libraries(test_libs PRIVATE
     jemalloc
     natscpp::natscpp
     opentelemetry_trace
+    opentelemetry_metrics
+    opentelemetry_logs
     opentelemetry_sdk
 )
 
