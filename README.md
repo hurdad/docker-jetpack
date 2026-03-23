@@ -2,7 +2,7 @@
 
 Docker images for NVIDIA JetPack 6 / L4T R36 / CUDA 12.2 (aarch64).
 
-Pre-built images are published to [GitHub Container Registry](https://github.com/hurdad/docker-jetpack/pkgs/container/docker-jetpack6).
+Pre-built images are published to GitHub Container Registry: [docker-jetpack6-runtime](https://github.com/hurdad/docker-jetpack/pkgs/container/docker-jetpack6-runtime) and [docker-jetpack6-dev](https://github.com/hurdad/docker-jetpack/pkgs/container/docker-jetpack6-dev).
 
 ## Libraries
 
@@ -49,17 +49,17 @@ Pre-built images are published to [GitHub Container Registry](https://github.com
 
 | Image | Size | Description |
 |---|---|---|
-| `ghcr.io/hurdad/docker-jetpack6:latest` | ~1.2 GB | Runtime — minimal libs only |
-| `ghcr.io/hurdad/docker-jetpack6:latest-dev` | ~13 GB | Dev — includes build tools and headers |
+| `ghcr.io/hurdad/docker-jetpack6-runtime:latest` | ~1.2 GB | Runtime — minimal libs only |
+| `ghcr.io/hurdad/docker-jetpack6-dev:latest` | ~13 GB | Dev — includes build tools and headers |
 
 ## Pull
 
 ```bash
 # Runtime
-docker pull ghcr.io/hurdad/docker-jetpack6:latest
+docker pull ghcr.io/hurdad/docker-jetpack6-runtime:latest
 
 # Dev
-docker pull ghcr.io/hurdad/docker-jetpack6:latest-dev
+docker pull ghcr.io/hurdad/docker-jetpack6-dev:latest
 ```
 
 ## Build locally
@@ -82,12 +82,12 @@ docker build -f Dockerfile.jetpack6 --target dev     -t docker-jetpack6:dev     
 
 ```bash
 # Runtime
-docker run --rm --runtime=nvidia ghcr.io/hurdad/docker-jetpack6:latest
+docker run --rm --runtime=nvidia ghcr.io/hurdad/docker-jetpack6-runtime:latest
 
 # Dev
 docker run --rm --runtime=nvidia \
   -v $(pwd):/workspace \
-  ghcr.io/hurdad/docker-jetpack6:latest-dev
+  ghcr.io/hurdad/docker-jetpack6-dev:latest
 ```
 
 > `--runtime=nvidia` is required to expose CUDA libraries from the Jetson host.

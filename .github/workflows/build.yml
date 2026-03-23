@@ -33,7 +33,7 @@ jobs:
           platforms: linux/arm64
           target: test
           push: false
-          cache-from: type=registry,ref=${{ env.IMAGE_BASE }}:buildcache
+          cache-from: type=registry,ref=${{ env.IMAGE_BASE }}-runtime:buildcache
 
   build:
     runs-on: [self-hosted, jetson6]
@@ -47,9 +47,9 @@ jobs:
       matrix:
         target:
           - name: dev
-            suffix: -dev
+            image_suffix: -dev
           - name: runtime
-            suffix: ""
+            image_suffix: -runtime
 
     steps:
       - name: Checkout
@@ -70,9 +70,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.IMAGE_BASE }}
-          flavor: |
-            suffix=${{ matrix.target.suffix }},onlatest=true
+          images: ${{ env.IMAGE_BASE }}${{ matrix.target.image_suffix }}
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -90,5 +88,5 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=registry,ref=${{ env.IMAGE_BASE }}${{ matrix.target.suffix }}:buildcache
-          cache-to: ${{ github.event_name != 'pull_request' && format('type=registry,ref={0}{1}:buildcache,mode=max', env.IMAGE_BASE, matrix.target.suffix) || '' }}
+          cache-from: type=registry,ref=${{ env.IMAGE_BASE }}${{ matrix.target.image_suffix }}:buildcache
+          cache-to: ${{ github.event_name != 'pull_request' && format('type=registry,ref={0}{1}:buildcache,mode=max', env.IMAGE_BASE, matrix.target.image_suffix) || '' }}
