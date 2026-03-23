@@ -20,7 +20,7 @@ Pre-built images are published to [GitHub Container Registry](https://github.com
 | [gRPC](https://github.com/grpc/grpc) | v1.66.2 | Sep 2024 | — | 32 MB | 2 MB | High-performance RPC framework (static only) |
 | [AWS SDK C++](https://github.com/aws/aws-sdk-cpp) | 1.11.350 | Jun 2024 | ~16 MB³ | — | 13 MB | S3, STS, IAM, Cognito, Transfer, Config — required for Arrow S3 support |
 | [xsimd](https://github.com/xtensor-stack/xsimd) | 13.2.0 | — | — | — | 1.6 MB | SIMD intrinsics wrapper (Arrow dependency, header-only) |
-| [Apache Arrow](https://github.com/apache/arrow) | 23.0.1 | Feb 2025 | 19 MB⁴ | 42 MB⁵ | 4.3 MB | Columnar in-memory analytics with CUDA, S3, CSV and JSON support; includes PyArrow |
+| [Apache Arrow](https://github.com/apache/arrow) | 23.0.1 | Feb 2025 | 19 MB⁴ | 42 MB⁵ | 4.3 MB | Columnar in-memory analytics with Compute, CUDA, S3, CSV and JSON support |
 | [OpenTelemetry C++](https://github.com/open-telemetry/opentelemetry-cpp) | v1.26.0 | Mar 2025 | — | ~5 MB⁷ | 5.1 MB | Observability — traces, metrics, logs with OTLP/gRPC and OTLP/HTTP exporters |
 | [FlatBuffers](https://github.com/google/flatbuffers) | v25.12.19 | Dec 2024 | — | 1.1 MB | 528 KB | Memory-efficient serialization library (static only) |
 | [nats.c](https://github.com/nats-io/nats.c) | v3.12.0 | Nov 2024 | 573 KB | 1.1 MB | 68 KB | NATS messaging C client with TLS support |
@@ -97,7 +97,7 @@ Builds and runs a small C++ and Python test suite that verifies all built librar
 docker build -f Dockerfile.jetpack6 --target test -t docker-jetpack6:test .
 ```
 
-Covers: Arrow (array ops, CUDA), gRPC, Protobuf, FlatBuffers, jemalloc, nats.c, nats-cpp, PyArrow (arrays, S3 init, CUDA buffer). Arrow Compute and Dataset are disabled.
+Covers: Arrow (array ops, CUDA), gRPC, Protobuf, FlatBuffers, jemalloc, nats.c, nats-cpp. Arrow Dataset disabled.
 
 ### Upstream library test suites
 

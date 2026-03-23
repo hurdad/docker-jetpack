@@ -38,24 +38,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libboost-dev \
     libboost-filesystem-dev \
     libutf8proc-dev \
-    libcurl4-openssl-dev \
-    python3-pip \
-    python3-dev && \
+    libcurl4-openssl-dev && \
     rm -rf /var/lib/apt/lists/*
 
 # CUDA_HOME is set by l4t-jetpack; re-export so child layers see it
 ENV CUDA_HOME=/usr/local/cuda
 ENV PATH=$CUDA_HOME/bin:$PATH
-ENV LD_LIBRARY_PATH=$CUDA_HOME/lib64:$LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH=/usr/local/lib:$CUDA_HOME/lib64:$LD_LIBRARY_PATH
 
 WORKDIR /opt/build
 
 # -------------------------
 # jemalloc 5.3.0
 # -------------------------
-RUN git clone https://github.com/jemalloc/jemalloc.git && \
-    cd jemalloc && \
-    git checkout 5.3.0 && \
+RUN curl -fsSL https://github.com/jemalloc/jemalloc/archive/refs/tags/5.3.0.tar.gz | tar -xz && \
+    cd jemalloc-5.3.0 && \
     ./autogen.sh && \
     ./configure \
       --prefix=/usr/local \
@@ -65,14 +62,13 @@ RUN git clone https://github.com/jemalloc/jemalloc.git && \
       --disable-static && \
     make -j$(nproc) && \
     make install && \
-    rm -rf /opt/build/jemalloc
+    rm -rf /opt/build/jemalloc-5.3.0
 
 # -------------------------
 # Abseil 20240116.2
 # -------------------------
-RUN git clone https://github.com/abseil/abseil-cpp.git && \
-    cd abseil-cpp && \
-    git checkout 20240116.2 && \
+RUN curl -fsSL https://github.com/abseil/abseil-cpp/archive/refs/tags/20240116.2.tar.gz | tar -xz && \
+    cd abseil-cpp-20240116.2 && \
     mkdir build && cd build && \
     cmake .. -GNinja \
       -DCMAKE_BUILD_TYPE=Release \
@@ -80,15 +76,13 @@ RUN git clone https://github.com/abseil/abseil-cpp.git && \
       -DCMAKE_INSTALL_PREFIX=/usr/local \
       -DBUILD_SHARED_LIBS=ON && \
     ninja && ninja install && \
-    rm -rf /opt/build/abseil-cpp
+    rm -rf /opt/build/abseil-cpp-20240116.2
 
 # -------------------------
 # Protobuf v27.3
 # -------------------------
-RUN git clone https://github.com/protocolbuffers/protobuf.git && \
-    cd protobuf && \
-    git checkout v27.3 && \
-    git submodule update --init --recursive && \
+RUN curl -fsSL https://github.com/protocolbuffers/protobuf/releases/download/v27.3/protobuf-27.3.tar.gz | tar -xz && \
+    cd protobuf-27.3 && \
     mkdir build && cd build && \
     cmake .. -GNinja \
       -Dprotobuf_BUILD_TESTS=OFF \
@@ -97,7 +91,7 @@ RUN git clone https://github.com/protocolbuffers/protobuf.git && \
       -Dprotobuf_ABSL_PROVIDER=package \
       -DBUILD_SHARED_LIBS=ON && \
     ninja && ninja install && \
-    rm -rf /opt/build/protobuf
+    rm -rf /opt/build/protobuf-27.3
 
 # -------------------------
 # gRPC v1.66.2
@@ -148,9 +142,8 @@ RUN git clone https://github.com/aws/aws-sdk-cpp.git && \
 # so it fails.  Pre-installing xsimd lets Arrow find it via find_package and
 # skip the bundled build entirely.
 # -------------------------
-RUN git clone https://github.com/xtensor-stack/xsimd.git && \
-    cd xsimd && \
-    git checkout 13.2.0 && \
+RUN curl -fsSL https://github.com/xtensor-stack/xsimd/archive/refs/tags/13.2.0.tar.gz | tar -xz && \
+    cd xsimd-13.2.0 && \
     mkdir build && cd build && \
     cmake .. -GNinja \
       -DCMAKE_BUILD_TYPE=Release \
@@ -158,24 +151,21 @@ RUN git clone https://github.com/xtensor-stack/xsimd.git && \
       -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
       -DBUILD_TESTS=OFF && \
     ninja install && \
-    rm -rf /opt/build/xsimd
+    rm -rf /opt/build/xsimd-13.2.0
 
 # -------------------------
 # Apache Arrow 23.0.1 (CUDA + S3 enabled)
 # xsimd_SOURCE=SYSTEM: use the pre-installed xsimd above; avoids the
 # ExternalProject_Add that fails with newer cmake.
 # -------------------------
-RUN git clone https://github.com/apache/arrow.git && \
-    cd arrow && \
-    git checkout apache-arrow-23.0.1 && \
-    cd cpp && \
+RUN curl -fsSL https://archive.apache.org/dist/arrow/arrow-23.0.1/apache-arrow-23.0.1.tar.gz | tar -xz && \
+    cd apache-arrow-23.0.1/cpp && \
     mkdir build && cd build && \
     cmake .. -GNinja \
       -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_INSTALL_PREFIX=/usr/local \
       -DARROW_BUILD_SHARED=ON \
       -DARROW_BUILD_STATIC=OFF \
-      -DARROW_COMPUTE=OFF \
       -DARROW_DATASET=OFF \
       -DARROW_FILESYSTEM=ON \
       -DARROW_WITH_ZLIB=ON \
@@ -195,15 +185,7 @@ RUN git clone https://github.com/apache/arrow.git && \
       -Dxsimd_SOURCE=SYSTEM \
       -DCMAKE_POLICY_VERSION_MINIMUM=3.5 && \
     ninja && ninja install && \
-    cd /opt/build/arrow/python && \
-    pip3 install --no-cache-dir cython numpy && \
-    ARROW_HOME=/usr/local \
-    PYARROW_WITH_CUDA=1 \
-    PYARROW_WITH_FILESYSTEM=1 \
-    PYARROW_WITH_S3=1 \
-    pip3 wheel --no-cache-dir --no-build-isolation -w /tmp/pyarrow_wheels . && \
-    pip3 install --no-cache-dir /tmp/pyarrow_wheels/pyarrow-*.whl && \
-    rm -rf /tmp/pyarrow_wheels /opt/build/arrow
+    rm -rf /opt/build/apache-arrow-23.0.1
 
 # -------------------------
 # OpenTelemetry C++ v1.26.0
@@ -227,9 +209,8 @@ RUN git clone https://github.com/open-telemetry/opentelemetry-cpp.git && \
 # -------------------------
 # FlatBuffers v25.12.19
 # -------------------------
-RUN git clone https://github.com/google/flatbuffers.git && \
-    cd flatbuffers && \
-    git checkout v25.12.19 && \
+RUN curl -fsSL https://github.com/google/flatbuffers/archive/refs/tags/v25.12.19.tar.gz | tar -xz && \
+    cd flatbuffers-25.12.19 && \
     mkdir build && cd build && \
     cmake .. -GNinja \
       -DCMAKE_BUILD_TYPE=Release \
@@ -238,7 +219,7 @@ RUN git clone https://github.com/google/flatbuffers.git && \
       -DFLATBUFFERS_BUILD_SHAREDLIB=ON \
       -DFLATBUFFERS_BUILD_FLATLIB=OFF && \
     ninja && ninja install && \
-    rm -rf /opt/build/flatbuffers
+    rm -rf /opt/build/flatbuffers-25.12.19
 
 # -------------------------
 # nats.c v3.12.0
@@ -246,9 +227,8 @@ RUN git clone https://github.com/google/flatbuffers.git && \
 # Build dir kept alive so we can re-install after natscpp overwrites
 # nats/nats.h with its #include_next shim.
 # -------------------------
-RUN git clone https://github.com/nats-io/nats.c.git && \
-    cd nats.c && \
-    git checkout v3.12.0 && \
+RUN curl -fsSL https://github.com/nats-io/nats.c/archive/refs/tags/v3.12.0.tar.gz | tar -xz && \
+    cd nats.c-3.12.0 && \
     mkdir build && cd build && \
     cmake .. -GNinja \
       -DCMAKE_BUILD_TYPE=Release \
@@ -273,8 +253,8 @@ RUN git clone https://github.com/hurdad/nats-cpp.git && \
       -DNATSCPP_BUILD_EXAMPLES=OFF && \
     ninja install && \
     rm -rf /opt/build/nats-cpp && \
-    cd /opt/build/nats.c/build && ninja install && \
-    rm -rf /opt/build/nats.c
+    cd /opt/build/nats.c-3.12.0/build && ninja install && \
+    rm -rf /opt/build/nats.c-3.12.0
 
 # =========================
 # Stage: Test (smoke tests)
@@ -298,8 +278,6 @@ RUN cd /tests && \
 # Run C++ tests
 RUN /tests/build/test_libs
 
-# Run Python tests
-RUN python3 /tests/test_pyarrow.py
 
 # =========================
 # Stage: Test-libs (upstream library test suites)
@@ -360,9 +338,8 @@ RUN git clone https://github.com/protocolbuffers/protobuf.git && \
 # -------------------------
 # xsimd
 # -------------------------
-RUN git clone https://github.com/xtensor-stack/xsimd.git && \
-    cd xsimd && \
-    git checkout 13.2.0 && \
+RUN curl -fsSL https://github.com/xtensor-stack/xsimd/archive/refs/tags/13.2.0.tar.gz | tar -xz && \
+    cd xsimd-13.2.0 && \
     mkdir build && cd build && \
     cmake .. -GNinja \
       -DCMAKE_BUILD_TYPE=Release \
@@ -375,9 +352,8 @@ RUN git clone https://github.com/xtensor-stack/xsimd.git && \
 # -------------------------
 # FlatBuffers
 # -------------------------
-RUN git clone https://github.com/google/flatbuffers.git && \
-    cd flatbuffers && \
-    git checkout v25.12.19 && \
+RUN curl -fsSL https://github.com/google/flatbuffers/archive/refs/tags/v25.12.19.tar.gz | tar -xz && \
+    cd flatbuffers-25.12.19 && \
     mkdir build && cd build && \
     cmake .. -GNinja \
       -DCMAKE_BUILD_TYPE=Release \
@@ -389,17 +365,14 @@ RUN git clone https://github.com/google/flatbuffers.git && \
 # -------------------------
 # Arrow C++ (non-CUDA tests; CUDA tests require --runtime=nvidia at runtime)
 # -------------------------
-RUN git clone https://github.com/apache/arrow.git && \
-    cd arrow && \
-    git checkout apache-arrow-23.0.1 && \
-    cd cpp && \
+RUN curl -fsSL https://archive.apache.org/dist/arrow/arrow-23.0.1/apache-arrow-23.0.1.tar.gz | tar -xz && \
+    cd apache-arrow-23.0.1/cpp && \
     mkdir build && cd build && \
     cmake .. -GNinja \
       -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_INSTALL_PREFIX=/usr/local \
       -DARROW_BUILD_SHARED=ON \
       -DARROW_BUILD_STATIC=OFF \
-      -DARROW_COMPUTE=OFF \
       -DARROW_DATASET=OFF \
       -DARROW_FILESYSTEM=ON \
       -DARROW_WITH_ZLIB=ON \
@@ -438,9 +411,8 @@ RUN git clone https://github.com/open-telemetry/opentelemetry-cpp.git && \
 # -------------------------
 # nats.c v3.12.0
 # -------------------------
-RUN git clone https://github.com/nats-io/nats.c.git && \
-    cd nats.c && \
-    git checkout v3.12.0 && \
+RUN curl -fsSL https://github.com/nats-io/nats.c/archive/refs/tags/v3.12.0.tar.gz | tar -xz && \
+    cd nats.c-3.12.0 && \
     mkdir build && cd build && \
     cmake .. -GNinja \
       -DCMAKE_BUILD_TYPE=Release \
@@ -487,14 +459,11 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-reco
     libbrotli1 \
     libboost-filesystem1.74.0 \
     libutf8proc2 \
-    libcurl4 \
-    python3 && \
+    libcurl4 && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy only runtime artifacts
 COPY --from=builder /usr/local/lib /usr/local/lib
-COPY --from=builder /usr/local/bin /usr/local/bin
-COPY --from=builder /usr/local/lib/python3.10 /usr/local/lib/python3.10
 
 RUN ldconfig
 
