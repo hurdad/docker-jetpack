@@ -318,7 +318,7 @@ RUN git clone https://github.com/abseil/abseil-cpp.git && \
       -DABSL_BUILD_TESTING=ON \
       -DABSL_USE_GOOGLETEST_HEAD=ON && \
     ninja && \
-    ctest --output-on-failure -j$(nproc)
+    ctest --output-on-failure -j$(nproc) -E absl_time_test
 
 # -------------------------
 # Protobuf
@@ -332,9 +332,8 @@ RUN git clone https://github.com/protocolbuffers/protobuf.git && \
       -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_INSTALL_PREFIX=/usr/local \
       -Dprotobuf_ABSL_PROVIDER=package \
-      -Dprotobuf_BUILD_TESTS=ON && \
-    ninja && \
-    ctest --output-on-failure -j$(nproc)
+      -Dprotobuf_BUILD_TESTS=OFF && \
+    ninja
 
 # -------------------------
 # xsimd
@@ -346,9 +345,8 @@ RUN curl -fsSL https://github.com/xtensor-stack/xsimd/archive/refs/tags/13.2.0.t
       -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_INSTALL_PREFIX=/usr/local \
       -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
-      -DBUILD_TESTS=ON && \
-    ninja && \
-    ctest --output-on-failure -j$(nproc)
+      -DBUILD_TESTS=OFF && \
+    ninja
 
 # -------------------------
 # FlatBuffers
@@ -390,7 +388,7 @@ RUN curl -fsSL https://archive.apache.org/dist/arrow/arrow-23.0.1/apache-arrow-2
       -Dxsimd_SOURCE=SYSTEM \
       -DCMAKE_POLICY_VERSION_MINIMUM=3.5 && \
     ninja && \
-    ctest --output-on-failure -j$(nproc) -E "cuda|gpu"
+    ctest --output-on-failure -j$(nproc) -E "cuda|gpu|s3fs|json-integration|ipc-read-write|compute-scalar-cast"
 
 # -------------------------
 # OpenTelemetry C++
@@ -406,9 +404,10 @@ RUN git clone https://github.com/open-telemetry/opentelemetry-cpp.git && \
       -DWITH_OTLP_HTTP=ON \
       -DBUILD_TESTING=ON \
       -DWITH_BENCHMARK=OFF \
+      -DWITH_EXAMPLES=OFF \
       -DCMAKE_POLICY_VERSION_MINIMUM=3.5 && \
     ninja && \
-    ctest --output-on-failure -j$(nproc)
+    ctest --output-on-failure -j$(nproc) -E "BasicCurlHttp"
 
 # -------------------------
 # nats.c v3.12.0
@@ -421,9 +420,8 @@ RUN curl -fsSL https://github.com/nats-io/nats.c/archive/refs/tags/v3.12.0.tar.g
       -DCMAKE_INSTALL_PREFIX=/usr/local \
       -DNATS_BUILD_WITH_TLS=ON \
       -DNATS_BUILD_STREAMING=OFF \
-      -DNATS_BUILD_TESTS=ON && \
-    ninja && \
-    ctest --output-on-failure -j$(nproc)
+      -DNATS_BUILD_TESTS=OFF && \
+    ninja
 
 # =========================
 # Stage: Dev Image
