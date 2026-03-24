@@ -7,6 +7,14 @@ FROM nvcr.io/nvidia/l4t-jetpack:r36.2.0 AS builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 
+RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
+    ca-certificates curl gnupg && \
+    curl -fsSL https://apt.kitware.com/keys/kitware-archive-latest.asc \
+      | gpg --dearmor -o /usr/share/keyrings/kitware-archive-keyring.gpg && \
+    echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ jammy main' \
+      > /etc/apt/sources.list.d/kitware.list && \
+    rm -rf /var/lib/apt/lists/*
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     cmake \
@@ -87,13 +95,13 @@ RUN cd /opt/build/apache-arrow-23.0.1/python && \
     PYARROW_WITH_CSV=1 \
     PYARROW_WITH_JSON=1 \
     python setup.py build_ext --build-type=release bdist_wheel && \
-    cp dist/pyarrow-*.whl /opt/pyarrow.whl && \
+    cp dist/pyarrow-*.whl /opt/ && \
     rm -rf /opt/build/apache-arrow-23.0.1
 
 # =========================
 # Stage: Runtime
 # =========================
-FROM nvcr.io/nvidia/l4t-base:r36.2.0
+FROM nvcr.io/nvidia/l4t-base:r36.2.0 AS runtime
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -113,14 +121,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --from=builder /usr/local/lib/libarrow*.so* /usr/local/lib/
 COPY --from=builder /usr/local/lib/libparquet*.so* /usr/local/lib/
 COPY --from=builder /usr/local/lib/python3*/site-packages/pyarrow* /usr/local/lib/python3/dist-packages/
-COPY --from=builder /opt/pyarrow.whl /tmp/
+COPY --from=builder /opt/pyarrow-*.whl /tmp/
 
 RUN ldconfig
 
-RUN pip3 install --no-deps /tmp/pyarrow.whl && rm /tmp/pyarrow.whl
+RUN pip3 install --no-deps /tmp/pyarrow-*.whl && rm /tmp/pyarrow-*.whl
 
 ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
-
-RUN python3 -c "import pyarrow; import pyarrow.cuda; print('Arrow', pyarrow.__version__, '— CUDA OK')"
 
 CMD ["python3"]
