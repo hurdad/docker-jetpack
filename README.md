@@ -2,7 +2,9 @@
 
 Docker images for NVIDIA JetPack 6 / L4T R36 / CUDA 12.2 (aarch64).
 
-Pre-built images are published to GitHub Container Registry: [docker-jetpack6-runtime](https://github.com/hurdad/docker-jetpack/pkgs/container/docker-jetpack6-runtime) and [docker-jetpack6-dev](https://github.com/hurdad/docker-jetpack/pkgs/container/docker-jetpack6-dev).
+Pre-built images are published to GitHub Container Registry:
+- C++ libs: [docker-jetpack6-runtime](https://github.com/hurdad/docker-jetpack/pkgs/container/docker-jetpack6-runtime) and [docker-jetpack6-dev](https://github.com/hurdad/docker-jetpack/pkgs/container/docker-jetpack6-dev)
+- PyArrow CUDA: [docker-jetpack6-pyarrow-cuda](https://github.com/hurdad/docker-jetpack/pkgs/container/docker-jetpack6-pyarrow-cuda)
 
 ## Libraries
 
@@ -15,6 +17,8 @@ Pre-built images are published to GitHub Container Registry: [docker-jetpack6-ru
 | cuDNN | 8.x | — | — | — | Deep Neural Network primitives |
 | TensorRT | 8.x | — | — | — | High-performance deep learning inference |
 | [jemalloc](https://github.com/jemalloc/jemalloc) | 5.3.0 | May 2019 | 6.7 MB | 20 KB | Memory allocator with profiling and background thread support |
+| [fmt](https://github.com/fmtlib/fmt) | 12.1.0 | Mar 2025 | 160 KB | 596 KB | Fast, safe C++ formatting library |
+| [spdlog](https://github.com/gabime/spdlog) | v1.17.0 | Mar 2025 | 637 KB | 584 KB | Fast C++ logging library (uses fmt) |
 | [Abseil](https://github.com/abseil/abseil-cpp) | 20240116.2 | Apr 2024 | 24 KB¹ | 4.4 MB | Google C++ common libraries |
 | [Protobuf](https://github.com/protocolbuffers/protobuf) | v27.3 | Jul 2024 | 4.9 MB² | 4.5 MB³ | Protocol Buffers serialization |
 | [gRPC](https://github.com/grpc/grpc) | v1.66.2 | Sep 2024 | 13 MB⁴ | 544 KB | High-performance RPC framework |
@@ -47,47 +51,61 @@ Pre-built images are published to GitHub Container Registry: [docker-jetpack6-ru
 
 ## Images
 
+### C++ libs (`Dockerfile.jetpack6`)
+
 | Image | Size | Description |
 |---|---|---|
 | `ghcr.io/hurdad/docker-jetpack6-runtime:latest` | ~1.2 GB | Runtime — minimal libs only |
 | `ghcr.io/hurdad/docker-jetpack6-dev:latest` | ~13 GB | Dev — includes build tools and headers |
 
+### PyArrow CUDA (`Dockerfile.pyarrow-cuda`)
+
+| Image | Description |
+|---|---|
+| `ghcr.io/hurdad/docker-jetpack6-pyarrow-cuda:latest` | PyArrow 23.0.1 with CUDA, Parquet, Dataset and Compute — built for Jetson |
+
 ## Pull
 
 ```bash
-# Runtime
+# C++ libs — runtime
 docker pull ghcr.io/hurdad/docker-jetpack6-runtime:latest
 
-# Dev
+# C++ libs — dev
 docker pull ghcr.io/hurdad/docker-jetpack6-dev:latest
+
+# PyArrow CUDA
+docker pull ghcr.io/hurdad/docker-jetpack6-pyarrow-cuda:latest
 ```
 
 ## Build locally
 
-All images are defined as stages in `Dockerfile.jetpack6`. Build must run on an aarch64 host (Jetson).
+Build must run on an aarch64 host (Jetson).
 
 ```bash
-# Runtime
+# C++ libs — runtime
 docker build -f Dockerfile.jetpack6 --target runtime -t docker-jetpack6:runtime .
 
-# Dev
+# C++ libs — dev
 docker build -f Dockerfile.jetpack6 --target dev -t docker-jetpack6:dev .
 
-# Both
-docker build -f Dockerfile.jetpack6 --target runtime -t docker-jetpack6:runtime . && \
-docker build -f Dockerfile.jetpack6 --target dev     -t docker-jetpack6:dev     .
+# PyArrow CUDA
+docker build -f Dockerfile.pyarrow-cuda --target runtime -t docker-jetpack6-pyarrow-cuda .
 ```
 
 ## Usage
 
 ```bash
-# Runtime
+# C++ libs — runtime
 docker run --rm --runtime=nvidia ghcr.io/hurdad/docker-jetpack6-runtime:latest
 
-# Dev
+# C++ libs — dev
 docker run --rm --runtime=nvidia \
   -v $(pwd):/workspace \
   ghcr.io/hurdad/docker-jetpack6-dev:latest
+
+# PyArrow CUDA
+docker run --rm --runtime=nvidia ghcr.io/hurdad/docker-jetpack6-pyarrow-cuda:latest \
+  python3 -c "import pyarrow.cuda; print('CUDA OK')"
 ```
 
 > `--runtime=nvidia` is required to expose CUDA libraries from the Jetson host.

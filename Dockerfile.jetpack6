@@ -65,6 +65,37 @@ RUN curl -fsSL https://github.com/jemalloc/jemalloc/archive/refs/tags/5.3.0.tar.
     rm -rf /opt/build/jemalloc-5.3.0
 
 # -------------------------
+# fmt 12.1.0
+# -------------------------
+RUN curl -fsSL https://github.com/fmtlib/fmt/archive/refs/tags/12.1.0.tar.gz | tar -xz && \
+    cd fmt-12.1.0 && \
+    mkdir build && cd build && \
+    cmake .. -GNinja \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=/usr/local \
+      -DBUILD_SHARED_LIBS=ON \
+      -DFMT_TEST=OFF \
+      -DFMT_DOC=OFF && \
+    ninja && ninja install && \
+    rm -rf /opt/build/fmt-12.1.0
+
+# -------------------------
+# spdlog v1.17.0
+# -------------------------
+RUN curl -fsSL https://github.com/gabime/spdlog/archive/refs/tags/v1.17.0.tar.gz | tar -xz && \
+    cd spdlog-1.17.0 && \
+    mkdir build && cd build && \
+    cmake .. -GNinja \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=/usr/local \
+      -DBUILD_SHARED_LIBS=ON \
+      -DSPDLOG_FMT_EXTERNAL=ON \
+      -DSPDLOG_BUILD_EXAMPLE=OFF \
+      -DSPDLOG_BUILD_TESTS=OFF && \
+    ninja && ninja install && \
+    rm -rf /opt/build/spdlog-1.17.0
+
+# -------------------------
 # Abseil 20240116.2
 # -------------------------
 RUN curl -fsSL https://github.com/abseil/abseil-cpp/archive/refs/tags/20240116.2.tar.gz | tar -xz && \
