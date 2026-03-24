@@ -16,20 +16,20 @@ Pre-built images are published to GitHub Container Registry:
 | cuBLAS | 12.2 | — | — | — | CUDA Basic Linear Algebra Subroutines |
 | cuDNN | 8.x | — | — | — | Deep Neural Network primitives |
 | TensorRT | 8.x | — | — | — | High-performance deep learning inference |
-| [jemalloc](https://github.com/jemalloc/jemalloc) | 5.3.0 | May 2019 | 6.7 MB | 20 KB | Memory allocator with profiling and background thread support |
-| [fmt](https://github.com/fmtlib/fmt) | 12.1.0 | Mar 2025 | 160 KB | 596 KB | Fast, safe C++ formatting library |
-| [spdlog](https://github.com/gabime/spdlog) | v1.17.0 | Mar 2025 | 637 KB | 584 KB | Fast C++ logging library (uses fmt) |
+| [jemalloc](https://github.com/jemalloc/jemalloc) | 5.3.0 | May 2022 | 6.7 MB | 20 KB | Memory allocator with profiling and background thread support |
+| [fmt](https://github.com/fmtlib/fmt) | 12.1.0 | Oct 2025 | 160 KB | 596 KB | Fast, safe C++ formatting library |
+| [spdlog](https://github.com/gabime/spdlog) | v1.17.0 | Jan 2026 | 637 KB | 584 KB | Fast C++ logging library (uses fmt) |
 | [Abseil](https://github.com/abseil/abseil-cpp) | 20240116.2 | Apr 2024 | 24 KB¹ | 4.4 MB | Google C++ common libraries |
 | [Protobuf](https://github.com/protocolbuffers/protobuf) | v27.3 | Jul 2024 | 4.9 MB² | 4.5 MB³ | Protocol Buffers serialization |
 | [gRPC](https://github.com/grpc/grpc) | v1.66.2 | Sep 2024 | 13 MB⁴ | 544 KB | High-performance RPC framework |
 | [AWS SDK C++](https://github.com/aws/aws-sdk-cpp) | 1.11.350 | Jun 2024 | 2.9 MB⁵ | 13 MB | S3, STS, IAM, Cognito, Transfer, Config — required for Arrow S3 support |
-| [xsimd](https://github.com/xtensor-stack/xsimd) | 13.2.0 | — | — | 1.6 MB | SIMD intrinsics wrapper (Arrow dependency, header-only) |
-| [Apache Arrow](https://github.com/apache/arrow) | 23.0.1 | Feb 2025 | 19 MB⁶ | 3.9 MB | Columnar in-memory analytics with CUDA, S3, CSV and JSON support |
-| [OpenTelemetry C++](https://github.com/open-telemetry/opentelemetry-cpp) | v1.26.0 | Mar 2025 | 992 KB⁷ | 5.1 MB | Observability — traces, metrics, logs with OTLP/gRPC and OTLP/HTTP exporters |
-| [FlatBuffers](https://github.com/google/flatbuffers) | v25.12.19 | Dec 2024 | 704 KB | 528 KB | Memory-efficient serialization library |
-| [nats.c](https://github.com/nats-io/nats.c) | v3.12.0 | Nov 2024 | 577 KB | 452 KB | NATS messaging C client with TLS support |
+| [xsimd](https://github.com/xtensor-stack/xsimd) | 13.2.0 | Feb 2025 | — | 1.6 MB | SIMD intrinsics wrapper (Arrow dependency, header-only) |
+| [Apache Arrow](https://github.com/apache/arrow) | 23.0.1 | Feb 2026 | 19 MB⁶ | 3.9 MB | Columnar in-memory analytics with CUDA, S3, CSV and JSON support |
+| [OpenTelemetry C++](https://github.com/open-telemetry/opentelemetry-cpp) | v1.26.0 | Mar 2026 | 992 KB⁷ | 5.1 MB | Observability — traces, metrics, logs with OTLP/gRPC and OTLP/HTTP exporters |
+| [FlatBuffers](https://github.com/google/flatbuffers) | v25.12.19 | Dec 2025 | 704 KB | 528 KB | Memory-efficient serialization library |
+| [nats.c](https://github.com/nats-io/nats.c) | v3.12.0 | Nov 2025 | 577 KB | 452 KB | NATS messaging C client with TLS support |
 | [nats-cpp](https://github.com/hurdad/nats-cpp) | main | — | — | 148 KB | Header-only C++20 wrapper for nats.c |
-| [GoogleTest](https://github.com/google/googletest) | v1.15.2 | Aug 2024 | — | — | C++ testing and mocking framework (dev image only) |
+| [GoogleTest](https://github.com/google/googletest) | v1.15.2 | Jul 2024 | — | — | C++ testing and mocking framework (dev image only) |
 
 <details>
 <summary>Size footnotes</summary>
