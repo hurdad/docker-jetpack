@@ -29,6 +29,7 @@ Pre-built images are published to GitHub Container Registry:
 | [FlatBuffers](https://github.com/google/flatbuffers) | v25.12.19 | Dec 2024 | 704 KB | 528 KB | Memory-efficient serialization library |
 | [nats.c](https://github.com/nats-io/nats.c) | v3.12.0 | Nov 2024 | 577 KB | 452 KB | NATS messaging C client with TLS support |
 | [nats-cpp](https://github.com/hurdad/nats-cpp) | main | — | — | 148 KB | Header-only C++20 wrapper for nats.c |
+| [GoogleTest](https://github.com/google/googletest) | v1.15.2 | Aug 2024 | — | — | C++ testing and mocking framework (dev image only) |
 
 <details>
 <summary>Size footnotes</summary>
@@ -58,7 +59,7 @@ Pre-built images are published to GitHub Container Registry:
 | `ghcr.io/hurdad/docker-jetpack6-runtime:latest` | ~1.2 GB | Runtime — minimal libs only |
 | `ghcr.io/hurdad/docker-jetpack6-dev:latest` | ~13 GB | Dev — includes build tools and headers |
 
-### PyArrow CUDA (`Dockerfile.pyarrow-cuda`)
+### PyArrow CUDA (`Dockerfile.jetpack6.pyarrow-cuda`)
 
 | Image | Description |
 |---|---|
@@ -89,7 +90,7 @@ docker build -f Dockerfile.jetpack6 --target runtime -t docker-jetpack6:runtime 
 docker build -f Dockerfile.jetpack6 --target dev -t docker-jetpack6:dev .
 
 # PyArrow CUDA
-docker build -f Dockerfile.pyarrow-cuda --target runtime -t docker-jetpack6-pyarrow-cuda .
+docker build -f Dockerfile.jetpack6.pyarrow-cuda --target runtime -t docker-jetpack6-pyarrow-cuda .
 ```
 
 ## Usage

@@ -96,6 +96,20 @@ RUN curl -fsSL https://github.com/gabime/spdlog/archive/refs/tags/v1.17.0.tar.gz
     rm -rf /opt/build/spdlog-1.17.0
 
 # -------------------------
+# GoogleTest v1.15.2
+# -------------------------
+RUN curl -fsSL https://github.com/google/googletest/archive/refs/tags/v1.15.2.tar.gz | tar -xz && \
+    cd googletest-1.15.2 && \
+    mkdir build && cd build && \
+    cmake .. -GNinja \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=/usr/local \
+      -DBUILD_SHARED_LIBS=ON \
+      -DCMAKE_POLICY_VERSION_MINIMUM=3.5 && \
+    ninja && ninja install && \
+    rm -rf /opt/build/googletest-1.15.2
+
+# -------------------------
 # Abseil 20240116.2
 # -------------------------
 RUN curl -fsSL https://github.com/abseil/abseil-cpp/archive/refs/tags/20240116.2.tar.gz | tar -xz && \
@@ -347,7 +361,8 @@ RUN git clone https://github.com/abseil/abseil-cpp.git && \
       -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
       -DCMAKE_INSTALL_PREFIX=/usr/local \
       -DABSL_BUILD_TESTING=ON \
-      -DABSL_USE_GOOGLETEST_HEAD=ON && \
+      -DABSL_USE_EXTERNAL_GOOGLETEST=ON \
+      -DABSL_USE_GOOGLETEST_HEAD=OFF && \
     ninja && \
     ctest --output-on-failure -j$(nproc) -E absl_time_test
 
@@ -495,6 +510,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-reco
 
 # Copy only runtime artifacts
 COPY --from=builder /usr/local/lib /usr/local/lib
+RUN rm -f /usr/local/lib/libgtest*.so* /usr/local/lib/libgmock*.so*
 
 RUN ldconfig
 
