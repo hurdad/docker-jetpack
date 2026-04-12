@@ -1,4 +1,4 @@
-name: Build JetPack6 Docker Images
+name: Build Docker Images
 
 on:
   push:
@@ -10,11 +10,45 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_BASE: ghcr.io/${{ github.repository_owner }}/docker-jetpack6
+  IMAGE_BASE: ghcr.io/${{ github.repository_owner }}/jetpack
+
+# 2x2 matrix:
+#   arch:    x86  (linux/amd64)  |  arm64  (linux/arm64)
+#   variant: cpu  (ubuntu:24.04) |  cuda   (nvidia base)
+#
+# Resulting images (dev + runtime each):
+#   jetpack-x86-cpu-{dev,runtime}
+#   jetpack-x86-cuda-{dev,runtime}
+#   jetpack-arm64-cpu-{dev,runtime}
+#   jetpack-arm64-cuda-{dev,runtime}
 
 jobs:
   test:
-    runs-on: [self-hosted, jetson6]
+    name: Test (${{ matrix.variant.name }})
+    strategy:
+      fail-fast: false
+      matrix:
+        variant:
+          - name: x86-cpu
+            dockerfile: Dockerfile
+            platform: linux/amd64
+            runner: '["ubuntu-latest"]'
+            build_args: ARROW_SIMD_LEVEL=AVX2
+          - name: x86-cuda
+            dockerfile: Dockerfile.cuda
+            platform: linux/amd64
+            runner: '["ubuntu-latest"]'
+          - name: arm64-cpu
+            dockerfile: Dockerfile
+            platform: linux/arm64
+            runner: '["self-hosted","jetson6"]'
+            build_args: ARROW_SIMD_LEVEL=NEON
+          - name: arm64-cuda
+            dockerfile: Dockerfile.l4tcuda
+            platform: linux/arm64
+            runner: '["self-hosted","jetson6"]'
+
+    runs-on: ${{ fromJSON(matrix.variant.runner) }}
     permissions:
       contents: read
       packages: write
@@ -38,28 +72,52 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: Dockerfile.jetpack6
-          platforms: linux/arm64
+          file: ${{ matrix.variant.dockerfile }}
+          platforms: ${{ matrix.variant.platform }}
           target: test
           push: false
-          cache-from: type=registry,ref=${{ env.IMAGE_BASE }}-runtime:buildcache
-          cache-to: ${{ github.event_name != 'pull_request' && format('type=registry,ref={0}-runtime:buildcache,mode=max', env.IMAGE_BASE) || '' }}
+          build-args: ${{ matrix.variant.build_args }}
+          cache-from: type=registry,ref=${{ env.IMAGE_BASE }}-${{ matrix.variant.name }}-runtime:buildcache
+          cache-to: >-
+            ${{ github.event_name != 'pull_request' &&
+                format('type=registry,ref={0}-{1}-runtime:buildcache,mode=max',
+                       env.IMAGE_BASE, matrix.variant.name) || '' }}
 
   build:
-    runs-on: [self-hosted, jetson6]
+    name: Build (${{ matrix.variant.name }}, ${{ matrix.target.name }})
     needs: test
-    permissions:
-      contents: read
-      packages: write
-
     strategy:
       fail-fast: false
       matrix:
+        variant:
+          - name: x86-cpu
+            dockerfile: Dockerfile
+            platform: linux/amd64
+            runner: '["ubuntu-latest"]'
+            build_args: ARROW_SIMD_LEVEL=AVX2
+          - name: x86-cuda
+            dockerfile: Dockerfile.cuda
+            platform: linux/amd64
+            runner: '["ubuntu-latest"]'
+          - name: arm64-cpu
+            dockerfile: Dockerfile
+            platform: linux/arm64
+            runner: '["self-hosted","jetson6"]'
+            build_args: ARROW_SIMD_LEVEL=NEON
+          - name: arm64-cuda
+            dockerfile: Dockerfile.l4tcuda
+            platform: linux/arm64
+            runner: '["self-hosted","jetson6"]'
         target:
           - name: dev
-            image_suffix: -dev
+            suffix: -dev
           - name: runtime
-            image_suffix: -runtime
+            suffix: -runtime
+
+    runs-on: ${{ fromJSON(matrix.variant.runner) }}
+    permissions:
+      contents: read
+      packages: write
 
     steps:
       - name: Checkout
@@ -80,7 +138,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.IMAGE_BASE }}${{ matrix.target.image_suffix }}
+          images: ${{ env.IMAGE_BASE }}-${{ matrix.variant.name }}${{ matrix.target.suffix }}
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -92,11 +150,15 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: Dockerfile.jetpack6
-          platforms: linux/arm64
+          file: ${{ matrix.variant.dockerfile }}
+          platforms: ${{ matrix.variant.platform }}
           target: ${{ matrix.target.name }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=registry,ref=${{ env.IMAGE_BASE }}${{ matrix.target.image_suffix }}:buildcache
-          cache-to: ${{ github.event_name != 'pull_request' && format('type=registry,ref={0}{1}:buildcache,mode=max', env.IMAGE_BASE, matrix.target.image_suffix) || '' }}
+          build-args: ${{ matrix.variant.build_args }}
+          cache-from: type=registry,ref=${{ env.IMAGE_BASE }}-${{ matrix.variant.name }}${{ matrix.target.suffix }}:buildcache
+          cache-to: >-
+            ${{ github.event_name != 'pull_request' &&
+                format('type=registry,ref={0}-{1}{2}:buildcache,mode=max',
+                       env.IMAGE_BASE, matrix.variant.name, matrix.target.suffix) || '' }}

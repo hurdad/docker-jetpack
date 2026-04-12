@@ -50,7 +50,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: Dockerfile.jetpack6.pyarrow-cuda
+          file: Dockerfile.l4tcuda.pyarrow-cuda
           platforms: linux/arm64
           target: runtime
           push: ${{ github.event_name != 'pull_request' }}

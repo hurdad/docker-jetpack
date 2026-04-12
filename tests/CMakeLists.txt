@@ -4,7 +4,7 @@ project(docker_jetpack_tests)
 set(CMAKE_CXX_STANDARD 20)
 
 find_package(Arrow REQUIRED)
-find_package(ArrowCUDA REQUIRED)
+find_package(ArrowCUDA)
 find_package(gRPC REQUIRED)
 find_package(Protobuf REQUIRED)
 find_package(Flatbuffers REQUIRED)
@@ -32,9 +32,12 @@ target_link_libraries(test_libs PRIVATE
     opentelemetry_exporter_otlp_grpc_log
 )
 
-# CUDA smoke test — requires --runtime=nvidia at runtime; built but not run during build
-add_executable(test_libs_cuda test_libs_cuda.cpp)
-target_link_libraries(test_libs_cuda PRIVATE
-    Arrow::arrow_shared
-    ArrowCUDA::arrow_cuda_shared
-)
+# CUDA smoke test — only built when ArrowCUDA is available (cuda variants)
+# Requires --runtime=nvidia at runtime; built but not run during docker build
+if(ArrowCUDA_FOUND)
+    add_executable(test_libs_cuda test_libs_cuda.cpp)
+    target_link_libraries(test_libs_cuda PRIVATE
+        Arrow::arrow_shared
+        ArrowCUDA::arrow_cuda_shared
+    )
+endif()

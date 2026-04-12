@@ -3,9 +3,9 @@
 # =========================
 # Stage: Builder (base for dev)
 # =========================
-# l4t-jetpack:r36.2.0 ships CUDA 12.2 (nvcc, headers, cudart, cuBLAS, cuDNN,
+# l4tcuda:r36.2.0 ships CUDA 12.2 (nvcc, headers, cudart, cuBLAS, cuDNN,
 # TensorRT) — no need to apt-install cuda-nvcc / cuda-cudart-dev separately.
-FROM nvcr.io/nvidia/l4t-jetpack:r36.2.0 AS builder
+FROM nvcr.io/nvidia/l4tcuda:r36.2.0 AS builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -35,13 +35,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libsnappy-dev \
     liblz4-dev \
     libbrotli-dev \
-    libboost-dev \
-    libboost-filesystem-dev \
     libutf8proc-dev \
     libcurl4-openssl-dev && \
     rm -rf /var/lib/apt/lists/*
 
-# CUDA_HOME is set by l4t-jetpack; re-export so child layers see it
+# CUDA_HOME is set by l4tcuda; re-export so child layers see it
 ENV CUDA_HOME=/usr/local/cuda
 ENV PATH=$CUDA_HOME/bin:$PATH
 ENV LD_LIBRARY_PATH=/usr/local/lib:$CUDA_HOME/lib64:$LD_LIBRARY_PATH
@@ -503,7 +501,6 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-reco
     libsnappy1v5 \
     liblz4-1 \
     libbrotli1 \
-    libboost-filesystem1.74.0 \
     libutf8proc2 \
     libcurl4 && \
     rm -rf /var/lib/apt/lists/*
